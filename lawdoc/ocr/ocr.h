@@ -1,17 +1,10 @@
 #pragma once
 #include <leptonica/allheaders.h>
-#include <memory>
 #include <tesseract/baseapi.h>
 
-namespace lawdoc {
-class ocr {
-public:
-  static void init();
-  static void parse();
-
-private:
-  inline static std::unique_ptr<tesseract::TessBaseAPI> api_ =
-      std::make_unique<tesseract::TessBaseAPI>();
-  inline static bool can_user_ocr_{false};
-};
-} // namespace lawdoc
+namespace lawdoc::ocr {
+std::vector<std::string> supported_img_type();
+std::vector<std::string> pdf2image(std::string_view file_path, std::string_view img_type);
+void parse_image(std::string_view img_path);
+void remove_img();
+} // namespace lawdoc::ocr
