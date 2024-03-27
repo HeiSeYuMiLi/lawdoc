@@ -2,6 +2,8 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij+all,visualstudio,visualstudiocode,cmake,c,c++
 .cache
 build
+legal_instrument
+image
 
 ### C ###
 # Prerequisites

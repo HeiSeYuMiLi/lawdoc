@@ -11,11 +11,8 @@
 #include <poppler-image.h>
 #include <poppler-page-renderer.h>
 #include <poppler-page.h>
-#include <system_error>
 
 namespace lawdoc::ocr {
-auto img_root_directory{"../image/"};
-auto doc_root_directory{"../legal_instrument/"};
 std::string generate_file_name(std::string_view file_name, int page,
                                std::string_view file_type) {
   // 获取当前时间
@@ -36,7 +33,7 @@ std::vector<std::string> pdf2image(std::string_view file_name,
                                    std::string_view img_type) {
   // 创建一个poppler::document对象
   std::unique_ptr<poppler::document> doc(poppler::document::load_from_file(
-      std::string(doc_root_directory) + std::string(file_name) + ".pdf"));
+      "../pdf/劳荣枝故意杀人绑架抢劫罪死刑复核刑事裁定书.pdf"));
 
   // 检查文档是否成功加载
   if (!doc.get()) {
@@ -72,12 +69,11 @@ std::vector<std::string> pdf2image(std::string_view file_name,
       utils::error("saving to file failed");
       return {};
     }
-    break;
   }
   return img_names;
 }
 
-void parse_image(std::string_view img_path) {
+void parse_image(std::string_view img_name) {
   std::unique_ptr<tesseract::TessBaseAPI> api =
       std::make_unique<tesseract::TessBaseAPI>();
   if (api->Init("", "chi_sim")) {
@@ -86,22 +82,24 @@ void parse_image(std::string_view img_path) {
   }
 
   Pix *image =
-      pixRead((std::string(img_root_directory).append(img_path)).data());
+      pixRead((std::string(img_root_directory).append(img_name)).data());
   api->SetImage(image);
   // Get OCR result
   auto output = api->GetUTF8Text();
   std::ofstream out(std::string(doc_root_directory) +
-                    utils::remove_file_suff(img_path).append("txt"));
+                    utils::remove_file_suff(img_name).append(".txt"));
   out << output;
-  out.close();
+  if (out.is_open()) {
+    out.close();
+  }
   // Destroy used object and release memory
   api->End();
   delete[] output;
   pixDestroy(&image);
 }
 
-void remove_img() {
-  auto iter = std::filesystem::directory_iterator(img_root_directory);
+void remove_file(std::string_view root_path) {
+  auto iter = std::filesystem::directory_iterator(root_path);
   auto now = std::chrono::system_clock::now();
   for (auto &&entry : iter) {
     auto file_name = entry.path().filename().string();
@@ -112,8 +110,8 @@ void remove_img() {
                   std::chrono::microseconds(create_time)) >
         std::chrono::hours(1)) {
       std::error_code ec;
-      bool removed = std::filesystem::remove(
-          std::string(img_root_directory) + "/" + file_name, ec);
+      bool removed =
+          std::filesystem::remove(std::string(root_path) + "/" + file_name, ec);
       if (!ec) {
         if (!removed)
           LOG_WARN << "file: " << file_name << " no found!";

@@ -2,7 +2,10 @@
 #include <drogon/drogon.h>
 
 int main() {
-  lawdoc::ocr::parse_image("1711371460442601_劳荣枝故意杀人绑架抢劫罪死刑复核刑事裁定书1.png");
+  auto vec=lawdoc::ocr::pdf2image("", "png");
+  for(auto&& name:vec){
+    lawdoc::ocr::parse_image(name);
+  }
   drogon::app().addListener("0.0.0.0", 5555);
   // drogon::app().loadConfigFile("../config.json");
   drogon::app().run();
