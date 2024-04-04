@@ -13,17 +13,6 @@
 #include <poppler-page.h>
 
 namespace lawdoc::ocr {
-std::string generate_file_name(std::string_view file_name, int page,
-                               std::string_view file_type) {
-  // 获取当前时间
-  auto now = std::chrono::duration_cast<std::chrono::microseconds>(
-                 std::chrono::system_clock::now().time_since_epoch())
-                 .count();
-  // 命名规则：时间+原文件名+当前页数+文件类型
-  std::stringstream ss;
-  ss << now << "_" << file_name << page << "." << file_type;
-  return ss.str();
-}
 
 std::vector<std::string> supported_img_type() {
   return poppler::image::supported_image_formats();
@@ -62,7 +51,7 @@ std::vector<std::string> pdf2image(std::string_view file_name,
       utils::error("rendering failed");
       return {};
     }
-    auto img_name = generate_file_name(file_name, i + 1, img_type);
+    auto img_name = utils::generate_file_name(file_name, i + 1, img_type);
     img_names.push_back(img_name);
     if (!img.save(std::string(img_root_directory) + img_name,
                   std::string(img_type), 300)) {
