@@ -14,20 +14,24 @@ using namespace drogon::orm;
 using namespace drogon_model::lawdoc;
 
 const std::string TFile::Cols::_id = "id";
+const std::string TFile::Cols::_user_uuid = "user_uuid";
 const std::string TFile::Cols::_create_time = "create_time";
 const std::string TFile::Cols::_file_name = "file_name";
 const std::string TFile::Cols::_file_type = "file_type";
 const std::string TFile::Cols::_file_uuid = "file_uuid";
+const std::string TFile::Cols::_source_file = "source_file";
 const std::string TFile::primaryKeyName = "id";
 const bool TFile::hasPrimaryKey = true;
 const std::string TFile::tableName = "t_file";
 
 const std::vector<typename TFile::MetaData> TFile::metaData_={
 {"id","int32_t","int(11)",4,1,1,1},
+{"user_uuid","std::string","varchar(255)",255,0,0,1},
 {"create_time","::trantor::Date","timestamp",0,0,0,0},
 {"file_name","std::string","varchar(255)",255,0,0,1},
 {"file_type","std::string","varchar(20)",20,0,0,1},
-{"file_uuid","std::string","varchar(255)",255,0,0,1}
+{"file_uuid","std::string","varchar(255)",255,0,0,1},
+{"source_file","std::string","varchar(255)",255,0,0,0}
 };
 const std::string &TFile::getColumnName(size_t index) noexcept(false)
 {
@@ -41,6 +45,10 @@ TFile::TFile(const Row &r, const ssize_t indexOffset) noexcept
         if(!r["id"].isNull())
         {
             id_=std::make_shared<int32_t>(r["id"].as<int32_t>());
+        }
+        if(!r["user_uuid"].isNull())
+        {
+            userUuid_=std::make_shared<std::string>(r["user_uuid"].as<std::string>());
         }
         if(!r["create_time"].isNull())
         {
@@ -76,11 +84,15 @@ TFile::TFile(const Row &r, const ssize_t indexOffset) noexcept
         {
             fileUuid_=std::make_shared<std::string>(r["file_uuid"].as<std::string>());
         }
+        if(!r["source_file"].isNull())
+        {
+            sourceFile_=std::make_shared<std::string>(r["source_file"].as<std::string>());
+        }
     }
     else
     {
         size_t offset = (size_t)indexOffset;
-        if(offset + 5 > r.size())
+        if(offset + 7 > r.size())
         {
             LOG_FATAL << "Invalid SQL result for this model";
             return;
@@ -92,6 +104,11 @@ TFile::TFile(const Row &r, const ssize_t indexOffset) noexcept
             id_=std::make_shared<int32_t>(r[index].as<int32_t>());
         }
         index = offset + 1;
+        if(!r[index].isNull())
+        {
+            userUuid_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 2;
         if(!r[index].isNull())
         {
             auto timeStr = r[index].as<std::string>();
@@ -114,20 +131,25 @@ TFile::TFile(const Row &r, const ssize_t indexOffset) noexcept
                 createTime_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
-        index = offset + 2;
+        index = offset + 3;
         if(!r[index].isNull())
         {
             fileName_=std::make_shared<std::string>(r[index].as<std::string>());
         }
-        index = offset + 3;
+        index = offset + 4;
         if(!r[index].isNull())
         {
             fileType_=std::make_shared<std::string>(r[index].as<std::string>());
         }
-        index = offset + 4;
+        index = offset + 5;
         if(!r[index].isNull())
         {
             fileUuid_=std::make_shared<std::string>(r[index].as<std::string>());
+        }
+        index = offset + 6;
+        if(!r[index].isNull())
+        {
+            sourceFile_=std::make_shared<std::string>(r[index].as<std::string>());
         }
     }
 
@@ -135,7 +157,7 @@ TFile::TFile(const Row &r, const ssize_t indexOffset) noexcept
 
 TFile::TFile(const Json::Value &pJson, const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 5)
+    if(pMasqueradingVector.size() != 7)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -153,7 +175,15 @@ TFile::TFile(const Json::Value &pJson, const std::vector<std::string> &pMasquera
         dirtyFlag_[1] = true;
         if(!pJson[pMasqueradingVector[1]].isNull())
         {
-            auto timeStr = pJson[pMasqueradingVector[1]].asString();
+            userUuid_=std::make_shared<std::string>(pJson[pMasqueradingVector[1]].asString());
+        }
+    }
+    if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
+    {
+        dirtyFlag_[2] = true;
+        if(!pJson[pMasqueradingVector[2]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[2]].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -174,20 +204,12 @@ TFile::TFile(const Json::Value &pJson, const std::vector<std::string> &pMasquera
             }
         }
     }
-    if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
-    {
-        dirtyFlag_[2] = true;
-        if(!pJson[pMasqueradingVector[2]].isNull())
-        {
-            fileName_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
-        }
-    }
     if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
     {
         dirtyFlag_[3] = true;
         if(!pJson[pMasqueradingVector[3]].isNull())
         {
-            fileType_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
+            fileName_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
         }
     }
     if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
@@ -195,7 +217,23 @@ TFile::TFile(const Json::Value &pJson, const std::vector<std::string> &pMasquera
         dirtyFlag_[4] = true;
         if(!pJson[pMasqueradingVector[4]].isNull())
         {
-            fileUuid_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+            fileType_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+        }
+    }
+    if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
+    {
+        dirtyFlag_[5] = true;
+        if(!pJson[pMasqueradingVector[5]].isNull())
+        {
+            fileUuid_=std::make_shared<std::string>(pJson[pMasqueradingVector[5]].asString());
+        }
+    }
+    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
+    {
+        dirtyFlag_[6] = true;
+        if(!pJson[pMasqueradingVector[6]].isNull())
+        {
+            sourceFile_=std::make_shared<std::string>(pJson[pMasqueradingVector[6]].asString());
         }
     }
 }
@@ -210,9 +248,17 @@ TFile::TFile(const Json::Value &pJson) noexcept(false)
             id_=std::make_shared<int32_t>((int32_t)pJson["id"].asInt64());
         }
     }
-    if(pJson.isMember("create_time"))
+    if(pJson.isMember("user_uuid"))
     {
         dirtyFlag_[1]=true;
+        if(!pJson["user_uuid"].isNull())
+        {
+            userUuid_=std::make_shared<std::string>(pJson["user_uuid"].asString());
+        }
+    }
+    if(pJson.isMember("create_time"))
+    {
+        dirtyFlag_[2]=true;
         if(!pJson["create_time"].isNull())
         {
             auto timeStr = pJson["create_time"].asString();
@@ -238,7 +284,7 @@ TFile::TFile(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("file_name"))
     {
-        dirtyFlag_[2]=true;
+        dirtyFlag_[3]=true;
         if(!pJson["file_name"].isNull())
         {
             fileName_=std::make_shared<std::string>(pJson["file_name"].asString());
@@ -246,7 +292,7 @@ TFile::TFile(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("file_type"))
     {
-        dirtyFlag_[3]=true;
+        dirtyFlag_[4]=true;
         if(!pJson["file_type"].isNull())
         {
             fileType_=std::make_shared<std::string>(pJson["file_type"].asString());
@@ -254,10 +300,18 @@ TFile::TFile(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("file_uuid"))
     {
-        dirtyFlag_[4]=true;
+        dirtyFlag_[5]=true;
         if(!pJson["file_uuid"].isNull())
         {
             fileUuid_=std::make_shared<std::string>(pJson["file_uuid"].asString());
+        }
+    }
+    if(pJson.isMember("source_file"))
+    {
+        dirtyFlag_[6]=true;
+        if(!pJson["source_file"].isNull())
+        {
+            sourceFile_=std::make_shared<std::string>(pJson["source_file"].asString());
         }
     }
 }
@@ -265,7 +319,7 @@ TFile::TFile(const Json::Value &pJson) noexcept(false)
 void TFile::updateByMasqueradedJson(const Json::Value &pJson,
                                             const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 5)
+    if(pMasqueradingVector.size() != 7)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -282,7 +336,15 @@ void TFile::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[1] = true;
         if(!pJson[pMasqueradingVector[1]].isNull())
         {
-            auto timeStr = pJson[pMasqueradingVector[1]].asString();
+            userUuid_=std::make_shared<std::string>(pJson[pMasqueradingVector[1]].asString());
+        }
+    }
+    if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
+    {
+        dirtyFlag_[2] = true;
+        if(!pJson[pMasqueradingVector[2]].isNull())
+        {
+            auto timeStr = pJson[pMasqueradingVector[2]].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -303,20 +365,12 @@ void TFile::updateByMasqueradedJson(const Json::Value &pJson,
             }
         }
     }
-    if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
-    {
-        dirtyFlag_[2] = true;
-        if(!pJson[pMasqueradingVector[2]].isNull())
-        {
-            fileName_=std::make_shared<std::string>(pJson[pMasqueradingVector[2]].asString());
-        }
-    }
     if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
     {
         dirtyFlag_[3] = true;
         if(!pJson[pMasqueradingVector[3]].isNull())
         {
-            fileType_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
+            fileName_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
         }
     }
     if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
@@ -324,7 +378,23 @@ void TFile::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[4] = true;
         if(!pJson[pMasqueradingVector[4]].isNull())
         {
-            fileUuid_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+            fileType_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+        }
+    }
+    if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
+    {
+        dirtyFlag_[5] = true;
+        if(!pJson[pMasqueradingVector[5]].isNull())
+        {
+            fileUuid_=std::make_shared<std::string>(pJson[pMasqueradingVector[5]].asString());
+        }
+    }
+    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
+    {
+        dirtyFlag_[6] = true;
+        if(!pJson[pMasqueradingVector[6]].isNull())
+        {
+            sourceFile_=std::make_shared<std::string>(pJson[pMasqueradingVector[6]].asString());
         }
     }
 }
@@ -338,9 +408,17 @@ void TFile::updateByJson(const Json::Value &pJson) noexcept(false)
             id_=std::make_shared<int32_t>((int32_t)pJson["id"].asInt64());
         }
     }
-    if(pJson.isMember("create_time"))
+    if(pJson.isMember("user_uuid"))
     {
         dirtyFlag_[1] = true;
+        if(!pJson["user_uuid"].isNull())
+        {
+            userUuid_=std::make_shared<std::string>(pJson["user_uuid"].asString());
+        }
+    }
+    if(pJson.isMember("create_time"))
+    {
+        dirtyFlag_[2] = true;
         if(!pJson["create_time"].isNull())
         {
             auto timeStr = pJson["create_time"].asString();
@@ -366,7 +444,7 @@ void TFile::updateByJson(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("file_name"))
     {
-        dirtyFlag_[2] = true;
+        dirtyFlag_[3] = true;
         if(!pJson["file_name"].isNull())
         {
             fileName_=std::make_shared<std::string>(pJson["file_name"].asString());
@@ -374,7 +452,7 @@ void TFile::updateByJson(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("file_type"))
     {
-        dirtyFlag_[3] = true;
+        dirtyFlag_[4] = true;
         if(!pJson["file_type"].isNull())
         {
             fileType_=std::make_shared<std::string>(pJson["file_type"].asString());
@@ -382,10 +460,18 @@ void TFile::updateByJson(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("file_uuid"))
     {
-        dirtyFlag_[4] = true;
+        dirtyFlag_[5] = true;
         if(!pJson["file_uuid"].isNull())
         {
             fileUuid_=std::make_shared<std::string>(pJson["file_uuid"].asString());
+        }
+    }
+    if(pJson.isMember("source_file"))
+    {
+        dirtyFlag_[6] = true;
+        if(!pJson["source_file"].isNull())
+        {
+            sourceFile_=std::make_shared<std::string>(pJson["source_file"].asString());
         }
     }
 }
@@ -412,6 +498,28 @@ const typename TFile::PrimaryKeyType & TFile::getPrimaryKey() const
     return *id_;
 }
 
+const std::string &TFile::getValueOfUserUuid() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(userUuid_)
+        return *userUuid_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &TFile::getUserUuid() const noexcept
+{
+    return userUuid_;
+}
+void TFile::setUserUuid(const std::string &pUserUuid) noexcept
+{
+    userUuid_ = std::make_shared<std::string>(pUserUuid);
+    dirtyFlag_[1] = true;
+}
+void TFile::setUserUuid(std::string &&pUserUuid) noexcept
+{
+    userUuid_ = std::make_shared<std::string>(std::move(pUserUuid));
+    dirtyFlag_[1] = true;
+}
+
 const ::trantor::Date &TFile::getValueOfCreateTime() const noexcept
 {
     static const ::trantor::Date defaultValue = ::trantor::Date();
@@ -426,12 +534,12 @@ const std::shared_ptr<::trantor::Date> &TFile::getCreateTime() const noexcept
 void TFile::setCreateTime(const ::trantor::Date &pCreateTime) noexcept
 {
     createTime_ = std::make_shared<::trantor::Date>(pCreateTime);
-    dirtyFlag_[1] = true;
+    dirtyFlag_[2] = true;
 }
 void TFile::setCreateTimeToNull() noexcept
 {
     createTime_.reset();
-    dirtyFlag_[1] = true;
+    dirtyFlag_[2] = true;
 }
 
 const std::string &TFile::getValueOfFileName() const noexcept
@@ -448,12 +556,12 @@ const std::shared_ptr<std::string> &TFile::getFileName() const noexcept
 void TFile::setFileName(const std::string &pFileName) noexcept
 {
     fileName_ = std::make_shared<std::string>(pFileName);
-    dirtyFlag_[2] = true;
+    dirtyFlag_[3] = true;
 }
 void TFile::setFileName(std::string &&pFileName) noexcept
 {
     fileName_ = std::make_shared<std::string>(std::move(pFileName));
-    dirtyFlag_[2] = true;
+    dirtyFlag_[3] = true;
 }
 
 const std::string &TFile::getValueOfFileType() const noexcept
@@ -470,12 +578,12 @@ const std::shared_ptr<std::string> &TFile::getFileType() const noexcept
 void TFile::setFileType(const std::string &pFileType) noexcept
 {
     fileType_ = std::make_shared<std::string>(pFileType);
-    dirtyFlag_[3] = true;
+    dirtyFlag_[4] = true;
 }
 void TFile::setFileType(std::string &&pFileType) noexcept
 {
     fileType_ = std::make_shared<std::string>(std::move(pFileType));
-    dirtyFlag_[3] = true;
+    dirtyFlag_[4] = true;
 }
 
 const std::string &TFile::getValueOfFileUuid() const noexcept
@@ -492,12 +600,39 @@ const std::shared_ptr<std::string> &TFile::getFileUuid() const noexcept
 void TFile::setFileUuid(const std::string &pFileUuid) noexcept
 {
     fileUuid_ = std::make_shared<std::string>(pFileUuid);
-    dirtyFlag_[4] = true;
+    dirtyFlag_[5] = true;
 }
 void TFile::setFileUuid(std::string &&pFileUuid) noexcept
 {
     fileUuid_ = std::make_shared<std::string>(std::move(pFileUuid));
-    dirtyFlag_[4] = true;
+    dirtyFlag_[5] = true;
+}
+
+const std::string &TFile::getValueOfSourceFile() const noexcept
+{
+    static const std::string defaultValue = std::string();
+    if(sourceFile_)
+        return *sourceFile_;
+    return defaultValue;
+}
+const std::shared_ptr<std::string> &TFile::getSourceFile() const noexcept
+{
+    return sourceFile_;
+}
+void TFile::setSourceFile(const std::string &pSourceFile) noexcept
+{
+    sourceFile_ = std::make_shared<std::string>(pSourceFile);
+    dirtyFlag_[6] = true;
+}
+void TFile::setSourceFile(std::string &&pSourceFile) noexcept
+{
+    sourceFile_ = std::make_shared<std::string>(std::move(pSourceFile));
+    dirtyFlag_[6] = true;
+}
+void TFile::setSourceFileToNull() noexcept
+{
+    sourceFile_.reset();
+    dirtyFlag_[6] = true;
 }
 
 void TFile::updateId(const uint64_t id)
@@ -508,10 +643,12 @@ void TFile::updateId(const uint64_t id)
 const std::vector<std::string> &TFile::insertColumns() noexcept
 {
     static const std::vector<std::string> inCols={
+        "user_uuid",
         "create_time",
         "file_name",
         "file_type",
-        "file_uuid"
+        "file_uuid",
+        "source_file"
     };
     return inCols;
 }
@@ -519,6 +656,17 @@ const std::vector<std::string> &TFile::insertColumns() noexcept
 void TFile::outputArgs(drogon::orm::internal::SqlBinder &binder) const
 {
     if(dirtyFlag_[1])
+    {
+        if(getUserUuid())
+        {
+            binder << getValueOfUserUuid();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[2])
     {
         if(getCreateTime())
         {
@@ -529,7 +677,7 @@ void TFile::outputArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[2])
+    if(dirtyFlag_[3])
     {
         if(getFileName())
         {
@@ -540,7 +688,7 @@ void TFile::outputArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[3])
+    if(dirtyFlag_[4])
     {
         if(getFileType())
         {
@@ -551,11 +699,22 @@ void TFile::outputArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[4])
+    if(dirtyFlag_[5])
     {
         if(getFileUuid())
         {
             binder << getValueOfFileUuid();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[6])
+    {
+        if(getSourceFile())
+        {
+            binder << getValueOfSourceFile();
         }
         else
         {
@@ -583,12 +742,31 @@ const std::vector<std::string> TFile::updateColumns() const
     {
         ret.push_back(getColumnName(4));
     }
+    if(dirtyFlag_[5])
+    {
+        ret.push_back(getColumnName(5));
+    }
+    if(dirtyFlag_[6])
+    {
+        ret.push_back(getColumnName(6));
+    }
     return ret;
 }
 
 void TFile::updateArgs(drogon::orm::internal::SqlBinder &binder) const
 {
     if(dirtyFlag_[1])
+    {
+        if(getUserUuid())
+        {
+            binder << getValueOfUserUuid();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[2])
     {
         if(getCreateTime())
         {
@@ -599,7 +777,7 @@ void TFile::updateArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[2])
+    if(dirtyFlag_[3])
     {
         if(getFileName())
         {
@@ -610,7 +788,7 @@ void TFile::updateArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[3])
+    if(dirtyFlag_[4])
     {
         if(getFileType())
         {
@@ -621,11 +799,22 @@ void TFile::updateArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[4])
+    if(dirtyFlag_[5])
     {
         if(getFileUuid())
         {
             binder << getValueOfFileUuid();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[6])
+    {
+        if(getSourceFile())
+        {
+            binder << getValueOfSourceFile();
         }
         else
         {
@@ -644,6 +833,14 @@ Json::Value TFile::toJson() const
     {
         ret["id"]=Json::Value();
     }
+    if(getUserUuid())
+    {
+        ret["user_uuid"]=getValueOfUserUuid();
+    }
+    else
+    {
+        ret["user_uuid"]=Json::Value();
+    }
     if(getCreateTime())
     {
         ret["create_time"]=getCreateTime()->toDbStringLocal();
@@ -676,6 +873,14 @@ Json::Value TFile::toJson() const
     {
         ret["file_uuid"]=Json::Value();
     }
+    if(getSourceFile())
+    {
+        ret["source_file"]=getValueOfSourceFile();
+    }
+    else
+    {
+        ret["source_file"]=Json::Value();
+    }
     return ret;
 }
 
@@ -683,7 +888,7 @@ Json::Value TFile::toMasqueradedJson(
     const std::vector<std::string> &pMasqueradingVector) const
 {
     Json::Value ret;
-    if(pMasqueradingVector.size() == 5)
+    if(pMasqueradingVector.size() == 7)
     {
         if(!pMasqueradingVector[0].empty())
         {
@@ -698,9 +903,9 @@ Json::Value TFile::toMasqueradedJson(
         }
         if(!pMasqueradingVector[1].empty())
         {
-            if(getCreateTime())
+            if(getUserUuid())
             {
-                ret[pMasqueradingVector[1]]=getCreateTime()->toDbStringLocal();
+                ret[pMasqueradingVector[1]]=getValueOfUserUuid();
             }
             else
             {
@@ -709,9 +914,9 @@ Json::Value TFile::toMasqueradedJson(
         }
         if(!pMasqueradingVector[2].empty())
         {
-            if(getFileName())
+            if(getCreateTime())
             {
-                ret[pMasqueradingVector[2]]=getValueOfFileName();
+                ret[pMasqueradingVector[2]]=getCreateTime()->toDbStringLocal();
             }
             else
             {
@@ -720,9 +925,9 @@ Json::Value TFile::toMasqueradedJson(
         }
         if(!pMasqueradingVector[3].empty())
         {
-            if(getFileType())
+            if(getFileName())
             {
-                ret[pMasqueradingVector[3]]=getValueOfFileType();
+                ret[pMasqueradingVector[3]]=getValueOfFileName();
             }
             else
             {
@@ -731,13 +936,35 @@ Json::Value TFile::toMasqueradedJson(
         }
         if(!pMasqueradingVector[4].empty())
         {
-            if(getFileUuid())
+            if(getFileType())
             {
-                ret[pMasqueradingVector[4]]=getValueOfFileUuid();
+                ret[pMasqueradingVector[4]]=getValueOfFileType();
             }
             else
             {
                 ret[pMasqueradingVector[4]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[5].empty())
+        {
+            if(getFileUuid())
+            {
+                ret[pMasqueradingVector[5]]=getValueOfFileUuid();
+            }
+            else
+            {
+                ret[pMasqueradingVector[5]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[6].empty())
+        {
+            if(getSourceFile())
+            {
+                ret[pMasqueradingVector[6]]=getValueOfSourceFile();
+            }
+            else
+            {
+                ret[pMasqueradingVector[6]]=Json::Value();
             }
         }
         return ret;
@@ -750,6 +977,14 @@ Json::Value TFile::toMasqueradedJson(
     else
     {
         ret["id"]=Json::Value();
+    }
+    if(getUserUuid())
+    {
+        ret["user_uuid"]=getValueOfUserUuid();
+    }
+    else
+    {
+        ret["user_uuid"]=Json::Value();
     }
     if(getCreateTime())
     {
@@ -783,6 +1018,14 @@ Json::Value TFile::toMasqueradedJson(
     {
         ret["file_uuid"]=Json::Value();
     }
+    if(getSourceFile())
+    {
+        ret["source_file"]=getValueOfSourceFile();
+    }
+    else
+    {
+        ret["source_file"]=Json::Value();
+    }
     return ret;
 }
 
@@ -793,14 +1036,24 @@ bool TFile::validateJsonForCreation(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(0, "id", pJson["id"], err, true))
             return false;
     }
+    if(pJson.isMember("user_uuid"))
+    {
+        if(!validJsonOfField(1, "user_uuid", pJson["user_uuid"], err, true))
+            return false;
+    }
+    else
+    {
+        err="The user_uuid column cannot be null";
+        return false;
+    }
     if(pJson.isMember("create_time"))
     {
-        if(!validJsonOfField(1, "create_time", pJson["create_time"], err, true))
+        if(!validJsonOfField(2, "create_time", pJson["create_time"], err, true))
             return false;
     }
     if(pJson.isMember("file_name"))
     {
-        if(!validJsonOfField(2, "file_name", pJson["file_name"], err, true))
+        if(!validJsonOfField(3, "file_name", pJson["file_name"], err, true))
             return false;
     }
     else
@@ -810,7 +1063,7 @@ bool TFile::validateJsonForCreation(const Json::Value &pJson, std::string &err)
     }
     if(pJson.isMember("file_type"))
     {
-        if(!validJsonOfField(3, "file_type", pJson["file_type"], err, true))
+        if(!validJsonOfField(4, "file_type", pJson["file_type"], err, true))
             return false;
     }
     else
@@ -820,7 +1073,7 @@ bool TFile::validateJsonForCreation(const Json::Value &pJson, std::string &err)
     }
     if(pJson.isMember("file_uuid"))
     {
-        if(!validJsonOfField(4, "file_uuid", pJson["file_uuid"], err, true))
+        if(!validJsonOfField(5, "file_uuid", pJson["file_uuid"], err, true))
             return false;
     }
     else
@@ -828,13 +1081,18 @@ bool TFile::validateJsonForCreation(const Json::Value &pJson, std::string &err)
         err="The file_uuid column cannot be null";
         return false;
     }
+    if(pJson.isMember("source_file"))
+    {
+        if(!validJsonOfField(6, "source_file", pJson["source_file"], err, true))
+            return false;
+    }
     return true;
 }
 bool TFile::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                                                const std::vector<std::string> &pMasqueradingVector,
                                                std::string &err)
 {
-    if(pMasqueradingVector.size() != 5)
+    if(pMasqueradingVector.size() != 7)
     {
         err = "Bad masquerading vector";
         return false;
@@ -855,6 +1113,11 @@ bool TFile::validateMasqueradedJsonForCreation(const Json::Value &pJson,
               if(!validJsonOfField(1, pMasqueradingVector[1], pJson[pMasqueradingVector[1]], err, true))
                   return false;
           }
+        else
+        {
+            err="The " + pMasqueradingVector[1] + " column cannot be null";
+            return false;
+        }
       }
       if(!pMasqueradingVector[2].empty())
       {
@@ -863,11 +1126,6 @@ bool TFile::validateMasqueradedJsonForCreation(const Json::Value &pJson,
               if(!validJsonOfField(2, pMasqueradingVector[2], pJson[pMasqueradingVector[2]], err, true))
                   return false;
           }
-        else
-        {
-            err="The " + pMasqueradingVector[2] + " column cannot be null";
-            return false;
-        }
       }
       if(!pMasqueradingVector[3].empty())
       {
@@ -895,6 +1153,27 @@ bool TFile::validateMasqueradedJsonForCreation(const Json::Value &pJson,
             return false;
         }
       }
+      if(!pMasqueradingVector[5].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[5]))
+          {
+              if(!validJsonOfField(5, pMasqueradingVector[5], pJson[pMasqueradingVector[5]], err, true))
+                  return false;
+          }
+        else
+        {
+            err="The " + pMasqueradingVector[5] + " column cannot be null";
+            return false;
+        }
+      }
+      if(!pMasqueradingVector[6].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[6]))
+          {
+              if(!validJsonOfField(6, pMasqueradingVector[6], pJson[pMasqueradingVector[6]], err, true))
+                  return false;
+          }
+      }
     }
     catch(const Json::LogicError &e)
     {
@@ -915,24 +1194,34 @@ bool TFile::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
         err = "The value of primary key must be set in the json object for update";
         return false;
     }
+    if(pJson.isMember("user_uuid"))
+    {
+        if(!validJsonOfField(1, "user_uuid", pJson["user_uuid"], err, false))
+            return false;
+    }
     if(pJson.isMember("create_time"))
     {
-        if(!validJsonOfField(1, "create_time", pJson["create_time"], err, false))
+        if(!validJsonOfField(2, "create_time", pJson["create_time"], err, false))
             return false;
     }
     if(pJson.isMember("file_name"))
     {
-        if(!validJsonOfField(2, "file_name", pJson["file_name"], err, false))
+        if(!validJsonOfField(3, "file_name", pJson["file_name"], err, false))
             return false;
     }
     if(pJson.isMember("file_type"))
     {
-        if(!validJsonOfField(3, "file_type", pJson["file_type"], err, false))
+        if(!validJsonOfField(4, "file_type", pJson["file_type"], err, false))
             return false;
     }
     if(pJson.isMember("file_uuid"))
     {
-        if(!validJsonOfField(4, "file_uuid", pJson["file_uuid"], err, false))
+        if(!validJsonOfField(5, "file_uuid", pJson["file_uuid"], err, false))
+            return false;
+    }
+    if(pJson.isMember("source_file"))
+    {
+        if(!validJsonOfField(6, "source_file", pJson["source_file"], err, false))
             return false;
     }
     return true;
@@ -941,7 +1230,7 @@ bool TFile::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
                                              const std::vector<std::string> &pMasqueradingVector,
                                              std::string &err)
 {
-    if(pMasqueradingVector.size() != 5)
+    if(pMasqueradingVector.size() != 7)
     {
         err = "Bad masquerading vector";
         return false;
@@ -975,6 +1264,16 @@ bool TFile::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
       if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
       {
           if(!validJsonOfField(4, pMasqueradingVector[4], pJson[pMasqueradingVector[4]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
+      {
+          if(!validJsonOfField(5, pMasqueradingVector[5], pJson[pMasqueradingVector[5]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
+      {
+          if(!validJsonOfField(6, pMasqueradingVector[6], pJson[pMasqueradingVector[6]], err, false))
               return false;
       }
     }
@@ -1013,6 +1312,27 @@ bool TFile::validJsonOfField(size_t index,
         case 1:
             if(pJson.isNull())
             {
+                err="The " + fieldName + " column cannot be null";
+                return false;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            // asString().length() creates a string object, is there any better way to validate the length?
+            if(pJson.isString() && pJson.asString().length() > 255)
+            {
+                err="String length exceeds limit for the " +
+                    fieldName +
+                    " field (the maximum value is 255)";
+                return false;
+            }
+
+            break;
+        case 2:
+            if(pJson.isNull())
+            {
                 return true;
             }
             if(!pJson.isString())
@@ -1021,7 +1341,7 @@ bool TFile::validJsonOfField(size_t index,
                 return false;
             }
             break;
-        case 2:
+        case 3:
             if(pJson.isNull())
             {
                 err="The " + fieldName + " column cannot be null";
@@ -1042,7 +1362,7 @@ bool TFile::validJsonOfField(size_t index,
             }
 
             break;
-        case 3:
+        case 4:
             if(pJson.isNull())
             {
                 err="The " + fieldName + " column cannot be null";
@@ -1063,11 +1383,31 @@ bool TFile::validJsonOfField(size_t index,
             }
 
             break;
-        case 4:
+        case 5:
             if(pJson.isNull())
             {
                 err="The " + fieldName + " column cannot be null";
                 return false;
+            }
+            if(!pJson.isString())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            // asString().length() creates a string object, is there any better way to validate the length?
+            if(pJson.isString() && pJson.asString().length() > 255)
+            {
+                err="String length exceeds limit for the " +
+                    fieldName +
+                    " field (the maximum value is 255)";
+                return false;
+            }
+
+            break;
+        case 6:
+            if(pJson.isNull())
+            {
+                return true;
             }
             if(!pJson.isString())
             {

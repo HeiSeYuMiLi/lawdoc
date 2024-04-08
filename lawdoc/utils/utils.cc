@@ -24,4 +24,12 @@ std::string generate_file_name(std::string_view file_name, int page,
     ss << "." << file_type;
   return ss.str();
 }
+
+std::string serialize(jsonv const &json) {
+  Json::StreamWriterBuilder builder;
+  builder["commentStyle"] = "None";
+  builder["indentation"] = "";
+  builder["emitUTF8"] = true;
+  return Json::writeString(builder, json);
+}
 } // namespace lawdoc::utils

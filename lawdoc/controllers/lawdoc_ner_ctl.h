@@ -11,7 +11,7 @@ public:
 
   METHOD_LIST_BEGIN
 
-  ADD_METHOD_TO(ner_ctl::ner, "/ner", Post);
+  ADD_METHOD_TO(ner_ctl::ner, "/lawdoc/ner", Post);
 
   METHOD_LIST_END
 

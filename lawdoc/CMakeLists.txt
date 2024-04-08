@@ -38,6 +38,7 @@ aux_source_directory(models MODEL_SRC)
 aux_source_directory(ocr OCR_SRC)
 aux_source_directory(utils UTILS_SRC)
 aux_source_directory(db DB_SRC)
+aux_source_directory(src src_SRC)
 
 drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
                     ${CMAKE_CURRENT_BINARY_DIR})
@@ -54,7 +55,8 @@ target_sources(${PROJECT_NAME}
                ${MODEL_SRC}
                ${OCR_SRC}
                ${UTILS_SRC}
-               ${DB_SRC})
+               ${DB_SRC}
+               ${SRC_SRC})
 # ##############################################################################
 # uncomment the following line for dynamically loading views 
 # set_property(TARGET ${PROJECT_NAME} PROPERTY ENABLE_EXPORTS ON)

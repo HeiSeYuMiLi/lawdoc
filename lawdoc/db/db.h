@@ -12,6 +12,19 @@ struct criteria {
   drogon::orm::Criteria crit{};
   std::string col{"id"};
   drogon::orm::SortOrder order{drogon::orm::SortOrder::ASC};
+  
+  criteria &set_crit(std::string const &col, std::string const &opera,
+                     std::string const &value) {
+    Json::Value json{Json::arrayValue};
+    json.append(col);
+    json.append(opera);
+    json.append(value);
+    if (crit)
+      crit = crit && drogon::orm::Criteria(json);
+    else
+      crit = drogon::orm::Criteria(json);
+    return *this;
+  }
 };
 
 template <class T> class db {

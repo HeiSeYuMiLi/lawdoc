@@ -4,8 +4,9 @@
 #include <charconv>
 #include <chrono>
 #include <drogon/drogon.h>
+#include <drogon/utils/Utilities.h>
 #include <filesystem>
-#include <fstream>
+// #include <fstream>
 #include <memory>
 #include <poppler-document.h>
 #include <poppler-image.h>
@@ -21,8 +22,8 @@ std::vector<std::string> supported_img_type() {
 std::vector<std::string> pdf2image(std::string_view file_name,
                                    std::string_view img_type) {
   // 创建一个poppler::document对象
-  std::unique_ptr<poppler::document> doc(poppler::document::load_from_file(
-      "../pdf/劳荣枝故意杀人绑架抢劫罪死刑复核刑事裁定书.pdf"));
+  std::unique_ptr<poppler::document> doc(
+      poppler::document::load_from_file("../file/" + std::string(file_name)));
 
   // 检查文档是否成功加载
   if (!doc.get()) {
@@ -51,10 +52,10 @@ std::vector<std::string> pdf2image(std::string_view file_name,
       utils::error("rendering failed");
       return {};
     }
-    auto img_name = utils::generate_file_name(file_name, i + 1, img_type);
+    auto img_name = drogon::utils::getUuid() + "." + std::string(img_type);
     img_names.push_back(img_name);
     if (!img.save(std::string(img_root_directory) + img_name,
-                  std::string(img_type), 300)) {
+                  std::string(img_type))) {
       utils::error("saving to file failed");
       return {};
     }
@@ -62,29 +63,33 @@ std::vector<std::string> pdf2image(std::string_view file_name,
   return img_names;
 }
 
-void parse_image(std::string_view img_name) {
+std::string parse_image(std::string_view img_name) {
   std::unique_ptr<tesseract::TessBaseAPI> api =
       std::make_unique<tesseract::TessBaseAPI>();
   if (api->Init("", "chi_sim")) {
     LOG_ERROR << "Could not initialize tesseract.";
-    return;
+    return {};
   }
 
   Pix *image =
       pixRead((std::string(img_root_directory).append(img_name)).data());
   api->SetImage(image);
-  // Get OCR result
   auto output = api->GetUTF8Text();
-  std::ofstream out(std::string(doc_root_directory) +
-                    utils::remove_file_suff(img_name).append(".txt"));
-  out << output;
-  if (out.is_open()) {
-    out.close();
-  }
-  // Destroy used object and release memory
+  // std::ofstream out(std::string(doc_root_directory) +
+  //                   utils::remove_file_suff(img_name).append(".txt"));
+  // out << output;
+  // if (out.is_open()) {
+  //   out.close();
+  // }
+  std::string content{output};
+  // 移除空格
+  content.erase(std::remove(content.begin(), content.end(), ' '),
+                content.end());
+
   api->End();
   delete[] output;
   pixDestroy(&image);
+  return content;
 }
 
 void remove_file(std::string_view root_path) {
