@@ -3,9 +3,10 @@
 
 namespace lawdoc::captcha {
 std::string get_captcha(std::string const &account) {
-  std::default_random_engine engine;
-  std::uniform_int_distribution<int> distribution(100000, 999999);
-  int random_number = distribution(engine);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(100000, 999999);
+  int random_number = dis(gen);
   auto rn = std::to_string(random_number);
 
   std::unique_lock<std::mutex> _(mt);

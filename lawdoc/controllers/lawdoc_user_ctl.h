@@ -14,7 +14,7 @@ public:
   ADD_METHOD_TO(user_ctl::signin_by_phone, "/lawdoc/signin/phone", Post);
   ADD_METHOD_TO(user_ctl::signin_by_mail, "/lawdoc/signin/mail", Post);
   ADD_METHOD_TO(user_ctl::signout, "/lawdoc/signout", Post);
-  ADD_METHOD_TO(user_ctl::get_captcha, "/lawdoc/signin/captcha", Get);
+  ADD_METHOD_TO(user_ctl::get_captcha, "/lawdoc/signin/captcha", Post);
 
   METHOD_LIST_END
 

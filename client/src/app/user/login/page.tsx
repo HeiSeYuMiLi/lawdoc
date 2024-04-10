@@ -2,6 +2,9 @@
 
 import "bulma"
 import { useEffect } from 'react';
+import { useState } from 'react';
+import React from 'react'
+import axios from 'axios';
 
 export default function Login() {
   useEffect(() => {
@@ -11,12 +14,20 @@ export default function Login() {
     let method2a = document.getElementById('LoginMethod2-a')
     let method1as = document.getElementById('LoginMethod1-a-span')
     let method2as = document.getElementById('LoginMethod2-a-span')
+    let method1f = document.getElementById('Method1')
+    let method2f = document.getElementById('Method2')
 
     function change_tab() {
       method1?.classList.toggle('is-active')
       method2?.classList.toggle('is-active')
       method1a?.classList.toggle('trans1')
       method2a?.classList.toggle('trans1')
+      method1f?.classList.toggle('is-hidden')
+      method2f?.classList.toggle('is-hidden')
+      method1as?.classList.toggle('has-text-grey-light')
+      method1as?.classList.toggle('has-text-black')
+      method2as?.classList.toggle('has-text-grey-light')
+      method2as?.classList.toggle('has-text-black')
     }
     function select_method1() {
       if (!method1?.classList.contains('is-active')) {
@@ -37,12 +48,97 @@ export default function Login() {
     };
   }, []);
 
+  const [phone, setPhone] = useState('');
+  const [captcha, setCaptcha] = useState('');
+  const [account, setAccount] = useState('');
+  const [password, setPassword] = useState('');
 
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const token = '123'
+    const config = {
+      headers: {
+        'Authorization': token
+      }
+    };
+    const url = 'http://localhost:22222/lawdoc/signin/phone';
+
+    try {
+      const response = await axios.post(url, {
+        'phone': phone,
+        'captcha': captcha
+      }, config);
+
+      if (response.status === 200) {
+        console.log(response.data);
+      } else {
+      }
+    } catch (error) {
+      console.error('An unexpected error occurred:', error);
+    }
+  };
+
+  const handleSubmit2 = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const token = '123'
+    const config = {
+      headers: {
+        'Authorization': token
+      }
+    };
+    const url = 'http://localhost:22222/lawdoc/signin/mail';
+
+    try {
+      const response = await axios.post(url, {
+        'account': account,
+        'password': password
+      }, config);
+
+      if (response.status === 200) {
+        console.log(response.data);
+      } else {
+      }
+    } catch (error) {
+      console.error('An unexpected error occurred:', error);
+    }
+  };
+
+  const getCaptcha = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+
+    const token = '123'
+    const config = {
+      headers: {
+        'Authorization': token
+      }
+    };
+    const url = 'http://localhost:22222/lawdoc/signin/captcha';
+
+    try {
+      const response = await axios.post(url, { 'account': phone }, config);
+
+      if (response.status === 200) {
+        const data = response.data;
+        if (data.code === 0) {
+          alert(data.data.captcha);
+        }
+        else {
+          alert(data.err_msg)
+        }
+      } else {
+      }
+    } catch (error) {
+      console.error('An unexpected error occurred:', error);
+    }
+  };
 
   return (
     <main className="p-36" style={{ height: "100vh", backgroundImage: 'url("https://images.pexels.com/photos/613508/pexels-photo-613508.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1")', backgroundSize: "cover" }}>
       <div className="ml-auto" style={{ width: "35%" }}>
-        <form className="box trans1">
+        <div className="box trans1">
+
           <div className="field mb-5">
             <div className="tabs is-boxed is-medium">
               <ul>
@@ -59,44 +155,78 @@ export default function Login() {
               </ul>
             </div>
           </div>
-          <div className="field mb-5">
-            <label className="label">手机号</label>
-            <div className="field has-addons">
-              <div className="control">
-                <span className="select">
-                  <select style={{ backgroundColor: "rgba(255,255,255,0.8)" }}>
-                    <option>+86</option>
-                    <option>+56</option>
-                    <option>+19</option>
-                  </select>
-                </span>
+
+          {/* 手机快捷登录 */}
+          <form onSubmit={handleSubmit}>
+            <div id="Method1">
+              <div className="field mb-5">
+                <label className="label">手机号</label>
+                <div className="field has-addons">
+                  <div className="control">
+                    <span className="select">
+                      <select style={{ backgroundColor: "rgba(255,255,255,0.8)" }}>
+                        <option>+86</option>
+                        <option>+56</option>
+                        <option>+19</option>
+                      </select>
+                    </span>
+                  </div>
+                  <div className="control is-expanded">
+                    <input className="input trans1" type="tel" placeholder="请输入手机号" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  </div>
+                </div>
               </div>
-              <div className="control is-expanded">
-                <input className="input trans1" type="tel" placeholder="请输入手机号" />
+              <div className="field mb-5">
+                <label className="label">验证码</label>
+                <div className="field has-addons">
+                  <div className="control is-expanded">
+                    <input className="input trans1" type="text" placeholder="请输入手机验证码" value={captcha} onChange={(e) => setCaptcha(e.target.value)} />
+                  </div>
+                  <div className="control">
+                    <button className="button" onClick={getCaptcha} style={{ backgroundColor: "rgba(255,255,255,0.8)" }}>
+                      获取验证码
+                    </button>
+                  </div>
+                </div>
               </div>
+              <div className="field mb-5">
+                <p>
+                  <input type="checkbox" style={{ margin: "revert" }} />
+                  未注册的手机号将自动注册。勾选代表您同意并接受<a href="#">服务协议</a>与<a href="#">隐私政策</a>
+                </p>
+              </div>
+              <button className="submit is-primary formButton">登 录</button>
             </div>
-          </div>
-          <div className="field mb-5">
-            <label className="label">验证码</label>
-            <div className="field has-addons">
-              <div className="control is-expanded">
-                <input className="input trans1" type="text" placeholder="请输入手机验证码" />
+          </form>
+
+          {/* 账号密码登录 */}
+          <form onSubmit={handleSubmit2}>
+            <div id="Method2" className="is-hidden">
+              <div className="field mb-5">
+                <label className="label">账 号</label>
+                <div className="field">
+                  <input className="input trans1" type="text" value={account} placeholder="请输入手机号或者邮箱" onChange={(e) => setAccount(e.target.value)} />
+                </div>
               </div>
-              <div className="control">
-                <button className="button" style={{ backgroundColor: "rgba(255,255,255,0.8)" }}>
-                  获取验证码
-                </button>
+              <div className="field mb-5">
+                <label className="label">密 码</label>
+                <div className="field has-addons">
+                  <div className="control is-expanded">
+                    <input className="input trans1" type="password" placeholder="请输入密码" value={password} onChange={(e) => setPassword(e.target.value)} />
+                  </div>
+                  <div className="control">
+                    <button className="button" style={{ backgroundColor: "rgba(255,255,255,0.8)" }}>
+                      忘记密码？
+                    </button>
+                  </div>
+                </div>
               </div>
+              <button className="submit is-primary formButton">登 录</button>
+              <button className="button is-primary" style={{ width: "100%", backgroundColor: "rgba(0,0,0,0)" }}>没有账号？立即注册</button>
             </div>
-          </div>
-          <div className="field mb-5">
-            <p>
-              <input type="checkbox" style={{ margin: "revert" }} />
-              未注册的手机号将自动注册。勾选代表您同意并接受<a href="#">服务协议</a>与<a href="#">隐私政策</a>
-            </p>
-          </div>
-          <button className="button is-primary" style={{ width: "100%", backgroundColor: "rgba(0,209,178,0.8)" }}>登录</button>
-        </form>
+          </form>
+
+        </div>
       </div>
     </main>
   );

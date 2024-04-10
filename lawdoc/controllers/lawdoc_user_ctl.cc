@@ -48,18 +48,20 @@ Task<> user_ctl::signin_by_phone(HttpRequestPtr req, FUNCTION callback) {
   auto users = co_await t_user::coro_query(crit);
   if (users.size() == 0) {
     // 未注册
-    if (co_await signup_by_phone(uuid, phone))
+    if (co_await signup_by_phone(uuid, phone)) {
       callback(drogon::HttpResponse::newHttpJsonResponse(utils::cb_json()));
-    else
+    } else {
       callback(utils::error("注册失败", 456));
+    }
   } else {
     // 已注册，修改uuid
     auto user = users[0];
     user.setUuid(uuid);
-    if (co_await t_user::coro_update(user))
+    if (co_await t_user::coro_update(user)) {
       callback(drogon::HttpResponse::newHttpJsonResponse(utils::cb_json()));
-    else
+    } else {
       callback(utils::error("登录失败", 456));
+    }
   }
 }
 
@@ -106,9 +108,17 @@ Task<> user_ctl::signin_by_mail(HttpRequestPtr req, FUNCTION callback) {
 void user_ctl::signout(const HttpRequestPtr &req, FUNCTION &&callback) {}
 
 void user_ctl::get_captcha(const HttpRequestPtr &req, FUNCTION &&callback) {
-  auto account = req->getParameter("account");
-  if (account.empty()) {
+  std::cout << req->getBody() << std::endl;
+  auto json_ptr = req->getJsonObject();
+  if (!json_ptr) {
     callback(utils::error("参数缺失", 456));
+    return;
+  }
+  auto req_json{*json_ptr};
+
+  auto account = req_json["account"].asString();
+  if (account.empty()) {
+    callback(utils::error("请输入手机号", 456));
     return;
   }
 

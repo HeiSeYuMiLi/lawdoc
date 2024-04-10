@@ -38,7 +38,7 @@ aux_source_directory(models MODEL_SRC)
 aux_source_directory(ocr OCR_SRC)
 aux_source_directory(utils UTILS_SRC)
 aux_source_directory(db DB_SRC)
-aux_source_directory(src src_SRC)
+aux_source_directory(src SRC_SRC)
 
 drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
                     ${CMAKE_CURRENT_BINARY_DIR})
