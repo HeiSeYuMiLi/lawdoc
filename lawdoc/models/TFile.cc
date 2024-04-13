@@ -14,7 +14,7 @@ using namespace drogon::orm;
 using namespace drogon_model::lawdoc;
 
 const std::string TFile::Cols::_id = "id";
-const std::string TFile::Cols::_user_uuid = "user_uuid";
+const std::string TFile::Cols::_user_id = "user_id";
 const std::string TFile::Cols::_create_time = "create_time";
 const std::string TFile::Cols::_file_name = "file_name";
 const std::string TFile::Cols::_file_type = "file_type";
@@ -26,7 +26,7 @@ const std::string TFile::tableName = "t_file";
 
 const std::vector<typename TFile::MetaData> TFile::metaData_={
 {"id","int32_t","int(11)",4,1,1,1},
-{"user_uuid","std::string","varchar(255)",255,0,0,1},
+{"user_id","int32_t","int(11)",4,0,0,1},
 {"create_time","::trantor::Date","timestamp",0,0,0,0},
 {"file_name","std::string","varchar(255)",255,0,0,1},
 {"file_type","std::string","varchar(20)",20,0,0,1},
@@ -46,9 +46,9 @@ TFile::TFile(const Row &r, const ssize_t indexOffset) noexcept
         {
             id_=std::make_shared<int32_t>(r["id"].as<int32_t>());
         }
-        if(!r["user_uuid"].isNull())
+        if(!r["user_id"].isNull())
         {
-            userUuid_=std::make_shared<std::string>(r["user_uuid"].as<std::string>());
+            userId_=std::make_shared<int32_t>(r["user_id"].as<int32_t>());
         }
         if(!r["create_time"].isNull())
         {
@@ -106,7 +106,7 @@ TFile::TFile(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 1;
         if(!r[index].isNull())
         {
-            userUuid_=std::make_shared<std::string>(r[index].as<std::string>());
+            userId_=std::make_shared<int32_t>(r[index].as<int32_t>());
         }
         index = offset + 2;
         if(!r[index].isNull())
@@ -175,7 +175,7 @@ TFile::TFile(const Json::Value &pJson, const std::vector<std::string> &pMasquera
         dirtyFlag_[1] = true;
         if(!pJson[pMasqueradingVector[1]].isNull())
         {
-            userUuid_=std::make_shared<std::string>(pJson[pMasqueradingVector[1]].asString());
+            userId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[1]].asInt64());
         }
     }
     if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
@@ -248,12 +248,12 @@ TFile::TFile(const Json::Value &pJson) noexcept(false)
             id_=std::make_shared<int32_t>((int32_t)pJson["id"].asInt64());
         }
     }
-    if(pJson.isMember("user_uuid"))
+    if(pJson.isMember("user_id"))
     {
         dirtyFlag_[1]=true;
-        if(!pJson["user_uuid"].isNull())
+        if(!pJson["user_id"].isNull())
         {
-            userUuid_=std::make_shared<std::string>(pJson["user_uuid"].asString());
+            userId_=std::make_shared<int32_t>((int32_t)pJson["user_id"].asInt64());
         }
     }
     if(pJson.isMember("create_time"))
@@ -336,7 +336,7 @@ void TFile::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[1] = true;
         if(!pJson[pMasqueradingVector[1]].isNull())
         {
-            userUuid_=std::make_shared<std::string>(pJson[pMasqueradingVector[1]].asString());
+            userId_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[1]].asInt64());
         }
     }
     if(!pMasqueradingVector[2].empty() && pJson.isMember(pMasqueradingVector[2]))
@@ -408,12 +408,12 @@ void TFile::updateByJson(const Json::Value &pJson) noexcept(false)
             id_=std::make_shared<int32_t>((int32_t)pJson["id"].asInt64());
         }
     }
-    if(pJson.isMember("user_uuid"))
+    if(pJson.isMember("user_id"))
     {
         dirtyFlag_[1] = true;
-        if(!pJson["user_uuid"].isNull())
+        if(!pJson["user_id"].isNull())
         {
-            userUuid_=std::make_shared<std::string>(pJson["user_uuid"].asString());
+            userId_=std::make_shared<int32_t>((int32_t)pJson["user_id"].asInt64());
         }
     }
     if(pJson.isMember("create_time"))
@@ -498,25 +498,20 @@ const typename TFile::PrimaryKeyType & TFile::getPrimaryKey() const
     return *id_;
 }
 
-const std::string &TFile::getValueOfUserUuid() const noexcept
+const int32_t &TFile::getValueOfUserId() const noexcept
 {
-    static const std::string defaultValue = std::string();
-    if(userUuid_)
-        return *userUuid_;
+    static const int32_t defaultValue = int32_t();
+    if(userId_)
+        return *userId_;
     return defaultValue;
 }
-const std::shared_ptr<std::string> &TFile::getUserUuid() const noexcept
+const std::shared_ptr<int32_t> &TFile::getUserId() const noexcept
 {
-    return userUuid_;
+    return userId_;
 }
-void TFile::setUserUuid(const std::string &pUserUuid) noexcept
+void TFile::setUserId(const int32_t &pUserId) noexcept
 {
-    userUuid_ = std::make_shared<std::string>(pUserUuid);
-    dirtyFlag_[1] = true;
-}
-void TFile::setUserUuid(std::string &&pUserUuid) noexcept
-{
-    userUuid_ = std::make_shared<std::string>(std::move(pUserUuid));
+    userId_ = std::make_shared<int32_t>(pUserId);
     dirtyFlag_[1] = true;
 }
 
@@ -643,7 +638,7 @@ void TFile::updateId(const uint64_t id)
 const std::vector<std::string> &TFile::insertColumns() noexcept
 {
     static const std::vector<std::string> inCols={
-        "user_uuid",
+        "user_id",
         "create_time",
         "file_name",
         "file_type",
@@ -657,9 +652,9 @@ void TFile::outputArgs(drogon::orm::internal::SqlBinder &binder) const
 {
     if(dirtyFlag_[1])
     {
-        if(getUserUuid())
+        if(getUserId())
         {
-            binder << getValueOfUserUuid();
+            binder << getValueOfUserId();
         }
         else
         {
@@ -757,9 +752,9 @@ void TFile::updateArgs(drogon::orm::internal::SqlBinder &binder) const
 {
     if(dirtyFlag_[1])
     {
-        if(getUserUuid())
+        if(getUserId())
         {
-            binder << getValueOfUserUuid();
+            binder << getValueOfUserId();
         }
         else
         {
@@ -833,13 +828,13 @@ Json::Value TFile::toJson() const
     {
         ret["id"]=Json::Value();
     }
-    if(getUserUuid())
+    if(getUserId())
     {
-        ret["user_uuid"]=getValueOfUserUuid();
+        ret["user_id"]=getValueOfUserId();
     }
     else
     {
-        ret["user_uuid"]=Json::Value();
+        ret["user_id"]=Json::Value();
     }
     if(getCreateTime())
     {
@@ -903,9 +898,9 @@ Json::Value TFile::toMasqueradedJson(
         }
         if(!pMasqueradingVector[1].empty())
         {
-            if(getUserUuid())
+            if(getUserId())
             {
-                ret[pMasqueradingVector[1]]=getValueOfUserUuid();
+                ret[pMasqueradingVector[1]]=getValueOfUserId();
             }
             else
             {
@@ -978,13 +973,13 @@ Json::Value TFile::toMasqueradedJson(
     {
         ret["id"]=Json::Value();
     }
-    if(getUserUuid())
+    if(getUserId())
     {
-        ret["user_uuid"]=getValueOfUserUuid();
+        ret["user_id"]=getValueOfUserId();
     }
     else
     {
-        ret["user_uuid"]=Json::Value();
+        ret["user_id"]=Json::Value();
     }
     if(getCreateTime())
     {
@@ -1036,14 +1031,14 @@ bool TFile::validateJsonForCreation(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(0, "id", pJson["id"], err, true))
             return false;
     }
-    if(pJson.isMember("user_uuid"))
+    if(pJson.isMember("user_id"))
     {
-        if(!validJsonOfField(1, "user_uuid", pJson["user_uuid"], err, true))
+        if(!validJsonOfField(1, "user_id", pJson["user_id"], err, true))
             return false;
     }
     else
     {
-        err="The user_uuid column cannot be null";
+        err="The user_id column cannot be null";
         return false;
     }
     if(pJson.isMember("create_time"))
@@ -1194,9 +1189,9 @@ bool TFile::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
         err = "The value of primary key must be set in the json object for update";
         return false;
     }
-    if(pJson.isMember("user_uuid"))
+    if(pJson.isMember("user_id"))
     {
-        if(!validJsonOfField(1, "user_uuid", pJson["user_uuid"], err, false))
+        if(!validJsonOfField(1, "user_id", pJson["user_id"], err, false))
             return false;
     }
     if(pJson.isMember("create_time"))
@@ -1315,20 +1310,11 @@ bool TFile::validJsonOfField(size_t index,
                 err="The " + fieldName + " column cannot be null";
                 return false;
             }
-            if(!pJson.isString())
+            if(!pJson.isInt())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;
             }
-            // asString().length() creates a string object, is there any better way to validate the length?
-            if(pJson.isString() && pJson.asString().length() > 255)
-            {
-                err="String length exceeds limit for the " +
-                    fieldName +
-                    " field (the maximum value is 255)";
-                return false;
-            }
-
             break;
         case 2:
             if(pJson.isNull())

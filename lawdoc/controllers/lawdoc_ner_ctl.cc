@@ -30,11 +30,17 @@ Task<std::string> handle_pdf(std::string const &file_uuid,
   model.setFileType("txt");
   model.setFileUuid(uuid);
   model.setSourceFile(file_uuid);
-  model.setUserUuid(token);
+  model.setUserId((co_await t_user::query_by_uuid(token)).getValueOfId());
   co_return (co_await t_file::coro_insert(model)) ? uuid : std::string{};
 }
 
 Task<> ner_ctl::ner(HttpRequestPtr req, FUNCTION callback) {
+  auto token = req->getHeader("Authorization");
+  if (!co_await t_user::check_uuid(token)) {
+    callback(utils::error("登录失效", 456));
+    co_return;
+  }
+
   // 1.根据文件名去本地目录中查找文件
   // 2.根据文件类型选择读取方式（pdf文件先转为图片然后ocr识别，txt文件直接提取文件内容，图片格式直接ocr识别，word再说）
   // 3.将文本发送模型识别，然后存储结果，返回前端
@@ -47,14 +53,13 @@ Task<> ner_ctl::ner(HttpRequestPtr req, FUNCTION callback) {
 
   auto file_uuid = req_json["file_uuid"].asString();
   auto file_type = req_json["file_type"].asString();
-  auto token = req->getHeader("token");
   std::string uuid{};
   if (file_type == "pdf") {
     uuid = co_await handle_pdf(file_uuid, file_type, token);
-  } else if (file_type == "word") {
+  } else if (file_type == "docx") {
     //...
   } else if (file_type == "txt") {
-
+    uuid = file_uuid;
   } else if (file_type == "png" || file_type == "jpg") {
   }
 
@@ -90,7 +95,7 @@ Task<> ner_ctl::ner(HttpRequestPtr req, FUNCTION callback) {
     model.setEntities(utils::serialize(resp_json));
     model.setFileUuid(file_uuid);
     if (co_await t_entities::coro_insert(model)) {
-      callback(drogon::HttpResponse::newHttpJsonResponse(resp_json));
+      callback(drogon::HttpResponse::newHttpJsonResponse(utils::cb_json()));
       co_return;
     }
   }

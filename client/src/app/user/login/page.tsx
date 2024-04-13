@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import React from 'react'
 import axios from 'axios';
+import { setToken } from "@/app/session";
+import { useRouter } from 'next/navigation'
 
 export default function Login() {
   useEffect(() => {
@@ -48,6 +50,7 @@ export default function Login() {
     };
   }, []);
 
+  const router = useRouter()
   const [phone, setPhone] = useState('');
   const [captcha, setCaptcha] = useState('');
   const [account, setAccount] = useState('');
@@ -56,23 +59,25 @@ export default function Login() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const token = '123'
-    const config = {
-      headers: {
-        'Authorization': token
-      }
-    };
-    const url = 'http://localhost:22222/lawdoc/signin/phone';
+    const url = 'http://localhost:22222/lawdoc/signin/captcha';
 
     try {
       const response = await axios.post(url, {
         'phone': phone,
         'captcha': captcha
-      }, config);
+      });
 
       if (response.status === 200) {
-        console.log(response.data);
+        const data = response.data
+        if (data.code === 0) {
+          console.log(data);
+          setToken(data.data.token);
+          router.replace('/home')
+        } else {
+          alert(data.err_msg)
+        }
       } else {
+        alert('登陆失败')
       }
     } catch (error) {
       console.error('An unexpected error occurred:', error);
@@ -82,23 +87,20 @@ export default function Login() {
   const handleSubmit2 = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const token = '123'
-    const config = {
-      headers: {
-        'Authorization': token
-      }
-    };
-    const url = 'http://localhost:22222/lawdoc/signin/mail';
+    const url = 'http://localhost:22222/lawdoc/signin/passwd';
 
     try {
       const response = await axios.post(url, {
         'account': account,
-        'password': password
-      }, config);
+        'passwd': password
+      });
 
       if (response.status === 200) {
         console.log(response.data);
+        setToken(response.data.data.token);
+        router.replace('/home')
       } else {
+        alert('登陆失败')
       }
     } catch (error) {
       console.error('An unexpected error occurred:', error);
@@ -108,16 +110,10 @@ export default function Login() {
   const getCaptcha = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
 
-    const token = '123'
-    const config = {
-      headers: {
-        'Authorization': token
-      }
-    };
-    const url = 'http://localhost:22222/lawdoc/signin/captcha';
+    const url = 'http://localhost:22222/lawdoc/signin/get_captcha';
 
     try {
-      const response = await axios.post(url, { 'account': phone }, config);
+      const response = await axios.post(url, { 'account': phone });
 
       if (response.status === 200) {
         const data = response.data;
@@ -132,6 +128,16 @@ export default function Login() {
     } catch (error) {
       console.error('An unexpected error occurred:', error);
     }
+  };
+
+  const signup = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    router.replace('/user/signup');
+  };
+
+  const recoverPasswd = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    router.replace('/user/recover_passwd');
   };
 
   return (
@@ -205,7 +211,7 @@ export default function Login() {
               <div className="field mb-5">
                 <label className="label">账 号</label>
                 <div className="field">
-                  <input className="input trans1" type="text" value={account} placeholder="请输入手机号或者邮箱" onChange={(e) => setAccount(e.target.value)} />
+                  <input className="input trans1" type="text" value={account} placeholder="请输入手机号" onChange={(e) => setAccount(e.target.value)} />
                 </div>
               </div>
               <div className="field mb-5">
@@ -215,14 +221,16 @@ export default function Login() {
                     <input className="input trans1" type="password" placeholder="请输入密码" value={password} onChange={(e) => setPassword(e.target.value)} />
                   </div>
                   <div className="control">
-                    <button className="button" style={{ backgroundColor: "rgba(255,255,255,0.8)" }}>
+                    <button className="button" onClick={recoverPasswd}
+                      style={{ backgroundColor: "rgba(255,255,255,0.8)" }}>
                       忘记密码？
                     </button>
                   </div>
                 </div>
               </div>
               <button className="submit is-primary formButton">登 录</button>
-              <button className="button is-primary" style={{ width: "100%", backgroundColor: "rgba(0,0,0,0)" }}>没有账号？立即注册</button>
+              <button className="button is-primary" onClick={signup}
+                style={{ width: "100%", backgroundColor: "rgba(0,0,0,0)" }}>没有账号？立即注册</button>
             </div>
           </form>
 

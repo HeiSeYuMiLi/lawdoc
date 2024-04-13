@@ -17,7 +17,6 @@ const std::string TUser::Cols::_id = "id";
 const std::string TUser::Cols::_name = "name";
 const std::string TUser::Cols::_uuid = "uuid";
 const std::string TUser::Cols::_phone = "phone";
-const std::string TUser::Cols::_mail = "mail";
 const std::string TUser::Cols::_password = "password";
 const std::string TUser::Cols::_create_time = "create_time";
 const std::string TUser::Cols::_update_time = "update_time";
@@ -29,8 +28,7 @@ const std::vector<typename TUser::MetaData> TUser::metaData_={
 {"id","int32_t","int(11)",4,1,1,1},
 {"name","std::string","varchar(255)",255,0,0,1},
 {"uuid","std::string","varchar(255)",255,0,0,1},
-{"phone","std::string","varchar(20)",20,0,0,1},
-{"mail","std::string","varchar(255)",255,0,0,0},
+{"phone","std::string","varchar(20)",20,0,0,0},
 {"password","std::string","varchar(255)",255,0,0,0},
 {"create_time","::trantor::Date","timestamp",0,0,0,0},
 {"update_time","::trantor::Date","timestamp",0,0,0,0}
@@ -59,10 +57,6 @@ TUser::TUser(const Row &r, const ssize_t indexOffset) noexcept
         if(!r["phone"].isNull())
         {
             phone_=std::make_shared<std::string>(r["phone"].as<std::string>());
-        }
-        if(!r["mail"].isNull())
-        {
-            mail_=std::make_shared<std::string>(r["mail"].as<std::string>());
         }
         if(!r["password"].isNull())
         {
@@ -116,7 +110,7 @@ TUser::TUser(const Row &r, const ssize_t indexOffset) noexcept
     else
     {
         size_t offset = (size_t)indexOffset;
-        if(offset + 8 > r.size())
+        if(offset + 7 > r.size())
         {
             LOG_FATAL << "Invalid SQL result for this model";
             return;
@@ -145,14 +139,9 @@ TUser::TUser(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 4;
         if(!r[index].isNull())
         {
-            mail_=std::make_shared<std::string>(r[index].as<std::string>());
-        }
-        index = offset + 5;
-        if(!r[index].isNull())
-        {
             password_=std::make_shared<std::string>(r[index].as<std::string>());
         }
-        index = offset + 6;
+        index = offset + 5;
         if(!r[index].isNull())
         {
             auto timeStr = r[index].as<std::string>();
@@ -175,7 +164,7 @@ TUser::TUser(const Row &r, const ssize_t indexOffset) noexcept
                 createTime_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
-        index = offset + 7;
+        index = offset + 6;
         if(!r[index].isNull())
         {
             auto timeStr = r[index].as<std::string>();
@@ -204,7 +193,7 @@ TUser::TUser(const Row &r, const ssize_t indexOffset) noexcept
 
 TUser::TUser(const Json::Value &pJson, const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 8)
+    if(pMasqueradingVector.size() != 7)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -246,7 +235,7 @@ TUser::TUser(const Json::Value &pJson, const std::vector<std::string> &pMasquera
         dirtyFlag_[4] = true;
         if(!pJson[pMasqueradingVector[4]].isNull())
         {
-            mail_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+            password_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
         }
     }
     if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
@@ -254,15 +243,7 @@ TUser::TUser(const Json::Value &pJson, const std::vector<std::string> &pMasquera
         dirtyFlag_[5] = true;
         if(!pJson[pMasqueradingVector[5]].isNull())
         {
-            password_=std::make_shared<std::string>(pJson[pMasqueradingVector[5]].asString());
-        }
-    }
-    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
-    {
-        dirtyFlag_[6] = true;
-        if(!pJson[pMasqueradingVector[6]].isNull())
-        {
-            auto timeStr = pJson[pMasqueradingVector[6]].asString();
+            auto timeStr = pJson[pMasqueradingVector[5]].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -283,12 +264,12 @@ TUser::TUser(const Json::Value &pJson, const std::vector<std::string> &pMasquera
             }
         }
     }
-    if(!pMasqueradingVector[7].empty() && pJson.isMember(pMasqueradingVector[7]))
+    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
     {
-        dirtyFlag_[7] = true;
-        if(!pJson[pMasqueradingVector[7]].isNull())
+        dirtyFlag_[6] = true;
+        if(!pJson[pMasqueradingVector[6]].isNull())
         {
-            auto timeStr = pJson[pMasqueradingVector[7]].asString();
+            auto timeStr = pJson[pMasqueradingVector[6]].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -345,17 +326,9 @@ TUser::TUser(const Json::Value &pJson) noexcept(false)
             phone_=std::make_shared<std::string>(pJson["phone"].asString());
         }
     }
-    if(pJson.isMember("mail"))
-    {
-        dirtyFlag_[4]=true;
-        if(!pJson["mail"].isNull())
-        {
-            mail_=std::make_shared<std::string>(pJson["mail"].asString());
-        }
-    }
     if(pJson.isMember("password"))
     {
-        dirtyFlag_[5]=true;
+        dirtyFlag_[4]=true;
         if(!pJson["password"].isNull())
         {
             password_=std::make_shared<std::string>(pJson["password"].asString());
@@ -363,7 +336,7 @@ TUser::TUser(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("create_time"))
     {
-        dirtyFlag_[6]=true;
+        dirtyFlag_[5]=true;
         if(!pJson["create_time"].isNull())
         {
             auto timeStr = pJson["create_time"].asString();
@@ -389,7 +362,7 @@ TUser::TUser(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("update_time"))
     {
-        dirtyFlag_[7]=true;
+        dirtyFlag_[6]=true;
         if(!pJson["update_time"].isNull())
         {
             auto timeStr = pJson["update_time"].asString();
@@ -418,7 +391,7 @@ TUser::TUser(const Json::Value &pJson) noexcept(false)
 void TUser::updateByMasqueradedJson(const Json::Value &pJson,
                                             const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 8)
+    if(pMasqueradingVector.size() != 7)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -459,7 +432,7 @@ void TUser::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[4] = true;
         if(!pJson[pMasqueradingVector[4]].isNull())
         {
-            mail_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
+            password_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
         }
     }
     if(!pMasqueradingVector[5].empty() && pJson.isMember(pMasqueradingVector[5]))
@@ -467,15 +440,7 @@ void TUser::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[5] = true;
         if(!pJson[pMasqueradingVector[5]].isNull())
         {
-            password_=std::make_shared<std::string>(pJson[pMasqueradingVector[5]].asString());
-        }
-    }
-    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
-    {
-        dirtyFlag_[6] = true;
-        if(!pJson[pMasqueradingVector[6]].isNull())
-        {
-            auto timeStr = pJson[pMasqueradingVector[6]].asString();
+            auto timeStr = pJson[pMasqueradingVector[5]].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -496,12 +461,12 @@ void TUser::updateByMasqueradedJson(const Json::Value &pJson,
             }
         }
     }
-    if(!pMasqueradingVector[7].empty() && pJson.isMember(pMasqueradingVector[7]))
+    if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
     {
-        dirtyFlag_[7] = true;
-        if(!pJson[pMasqueradingVector[7]].isNull())
+        dirtyFlag_[6] = true;
+        if(!pJson[pMasqueradingVector[6]].isNull())
         {
-            auto timeStr = pJson[pMasqueradingVector[7]].asString();
+            auto timeStr = pJson[pMasqueradingVector[6]].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -557,17 +522,9 @@ void TUser::updateByJson(const Json::Value &pJson) noexcept(false)
             phone_=std::make_shared<std::string>(pJson["phone"].asString());
         }
     }
-    if(pJson.isMember("mail"))
-    {
-        dirtyFlag_[4] = true;
-        if(!pJson["mail"].isNull())
-        {
-            mail_=std::make_shared<std::string>(pJson["mail"].asString());
-        }
-    }
     if(pJson.isMember("password"))
     {
-        dirtyFlag_[5] = true;
+        dirtyFlag_[4] = true;
         if(!pJson["password"].isNull())
         {
             password_=std::make_shared<std::string>(pJson["password"].asString());
@@ -575,7 +532,7 @@ void TUser::updateByJson(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("create_time"))
     {
-        dirtyFlag_[6] = true;
+        dirtyFlag_[5] = true;
         if(!pJson["create_time"].isNull())
         {
             auto timeStr = pJson["create_time"].asString();
@@ -601,7 +558,7 @@ void TUser::updateByJson(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("update_time"))
     {
-        dirtyFlag_[7] = true;
+        dirtyFlag_[6] = true;
         if(!pJson["update_time"].isNull())
         {
             auto timeStr = pJson["update_time"].asString();
@@ -714,32 +671,10 @@ void TUser::setPhone(std::string &&pPhone) noexcept
     phone_ = std::make_shared<std::string>(std::move(pPhone));
     dirtyFlag_[3] = true;
 }
-
-const std::string &TUser::getValueOfMail() const noexcept
+void TUser::setPhoneToNull() noexcept
 {
-    static const std::string defaultValue = std::string();
-    if(mail_)
-        return *mail_;
-    return defaultValue;
-}
-const std::shared_ptr<std::string> &TUser::getMail() const noexcept
-{
-    return mail_;
-}
-void TUser::setMail(const std::string &pMail) noexcept
-{
-    mail_ = std::make_shared<std::string>(pMail);
-    dirtyFlag_[4] = true;
-}
-void TUser::setMail(std::string &&pMail) noexcept
-{
-    mail_ = std::make_shared<std::string>(std::move(pMail));
-    dirtyFlag_[4] = true;
-}
-void TUser::setMailToNull() noexcept
-{
-    mail_.reset();
-    dirtyFlag_[4] = true;
+    phone_.reset();
+    dirtyFlag_[3] = true;
 }
 
 const std::string &TUser::getValueOfPassword() const noexcept
@@ -756,17 +691,17 @@ const std::shared_ptr<std::string> &TUser::getPassword() const noexcept
 void TUser::setPassword(const std::string &pPassword) noexcept
 {
     password_ = std::make_shared<std::string>(pPassword);
-    dirtyFlag_[5] = true;
+    dirtyFlag_[4] = true;
 }
 void TUser::setPassword(std::string &&pPassword) noexcept
 {
     password_ = std::make_shared<std::string>(std::move(pPassword));
-    dirtyFlag_[5] = true;
+    dirtyFlag_[4] = true;
 }
 void TUser::setPasswordToNull() noexcept
 {
     password_.reset();
-    dirtyFlag_[5] = true;
+    dirtyFlag_[4] = true;
 }
 
 const ::trantor::Date &TUser::getValueOfCreateTime() const noexcept
@@ -783,12 +718,12 @@ const std::shared_ptr<::trantor::Date> &TUser::getCreateTime() const noexcept
 void TUser::setCreateTime(const ::trantor::Date &pCreateTime) noexcept
 {
     createTime_ = std::make_shared<::trantor::Date>(pCreateTime);
-    dirtyFlag_[6] = true;
+    dirtyFlag_[5] = true;
 }
 void TUser::setCreateTimeToNull() noexcept
 {
     createTime_.reset();
-    dirtyFlag_[6] = true;
+    dirtyFlag_[5] = true;
 }
 
 const ::trantor::Date &TUser::getValueOfUpdateTime() const noexcept
@@ -805,12 +740,12 @@ const std::shared_ptr<::trantor::Date> &TUser::getUpdateTime() const noexcept
 void TUser::setUpdateTime(const ::trantor::Date &pUpdateTime) noexcept
 {
     updateTime_ = std::make_shared<::trantor::Date>(pUpdateTime);
-    dirtyFlag_[7] = true;
+    dirtyFlag_[6] = true;
 }
 void TUser::setUpdateTimeToNull() noexcept
 {
     updateTime_.reset();
-    dirtyFlag_[7] = true;
+    dirtyFlag_[6] = true;
 }
 
 void TUser::updateId(const uint64_t id)
@@ -824,7 +759,6 @@ const std::vector<std::string> &TUser::insertColumns() noexcept
         "name",
         "uuid",
         "phone",
-        "mail",
         "password",
         "create_time",
         "update_time"
@@ -869,17 +803,6 @@ void TUser::outputArgs(drogon::orm::internal::SqlBinder &binder) const
     }
     if(dirtyFlag_[4])
     {
-        if(getMail())
-        {
-            binder << getValueOfMail();
-        }
-        else
-        {
-            binder << nullptr;
-        }
-    }
-    if(dirtyFlag_[5])
-    {
         if(getPassword())
         {
             binder << getValueOfPassword();
@@ -889,7 +812,7 @@ void TUser::outputArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[6])
+    if(dirtyFlag_[5])
     {
         if(getCreateTime())
         {
@@ -900,7 +823,7 @@ void TUser::outputArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[7])
+    if(dirtyFlag_[6])
     {
         if(getUpdateTime())
         {
@@ -939,10 +862,6 @@ const std::vector<std::string> TUser::updateColumns() const
     if(dirtyFlag_[6])
     {
         ret.push_back(getColumnName(6));
-    }
-    if(dirtyFlag_[7])
-    {
-        ret.push_back(getColumnName(7));
     }
     return ret;
 }
@@ -984,17 +903,6 @@ void TUser::updateArgs(drogon::orm::internal::SqlBinder &binder) const
     }
     if(dirtyFlag_[4])
     {
-        if(getMail())
-        {
-            binder << getValueOfMail();
-        }
-        else
-        {
-            binder << nullptr;
-        }
-    }
-    if(dirtyFlag_[5])
-    {
         if(getPassword())
         {
             binder << getValueOfPassword();
@@ -1004,7 +912,7 @@ void TUser::updateArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[6])
+    if(dirtyFlag_[5])
     {
         if(getCreateTime())
         {
@@ -1015,7 +923,7 @@ void TUser::updateArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[7])
+    if(dirtyFlag_[6])
     {
         if(getUpdateTime())
         {
@@ -1062,14 +970,6 @@ Json::Value TUser::toJson() const
     {
         ret["phone"]=Json::Value();
     }
-    if(getMail())
-    {
-        ret["mail"]=getValueOfMail();
-    }
-    else
-    {
-        ret["mail"]=Json::Value();
-    }
     if(getPassword())
     {
         ret["password"]=getValueOfPassword();
@@ -1101,7 +1001,7 @@ Json::Value TUser::toMasqueradedJson(
     const std::vector<std::string> &pMasqueradingVector) const
 {
     Json::Value ret;
-    if(pMasqueradingVector.size() == 8)
+    if(pMasqueradingVector.size() == 7)
     {
         if(!pMasqueradingVector[0].empty())
         {
@@ -1149,9 +1049,9 @@ Json::Value TUser::toMasqueradedJson(
         }
         if(!pMasqueradingVector[4].empty())
         {
-            if(getMail())
+            if(getPassword())
             {
-                ret[pMasqueradingVector[4]]=getValueOfMail();
+                ret[pMasqueradingVector[4]]=getValueOfPassword();
             }
             else
             {
@@ -1160,9 +1060,9 @@ Json::Value TUser::toMasqueradedJson(
         }
         if(!pMasqueradingVector[5].empty())
         {
-            if(getPassword())
+            if(getCreateTime())
             {
-                ret[pMasqueradingVector[5]]=getValueOfPassword();
+                ret[pMasqueradingVector[5]]=getCreateTime()->toDbStringLocal();
             }
             else
             {
@@ -1171,24 +1071,13 @@ Json::Value TUser::toMasqueradedJson(
         }
         if(!pMasqueradingVector[6].empty())
         {
-            if(getCreateTime())
+            if(getUpdateTime())
             {
-                ret[pMasqueradingVector[6]]=getCreateTime()->toDbStringLocal();
+                ret[pMasqueradingVector[6]]=getUpdateTime()->toDbStringLocal();
             }
             else
             {
                 ret[pMasqueradingVector[6]]=Json::Value();
-            }
-        }
-        if(!pMasqueradingVector[7].empty())
-        {
-            if(getUpdateTime())
-            {
-                ret[pMasqueradingVector[7]]=getUpdateTime()->toDbStringLocal();
-            }
-            else
-            {
-                ret[pMasqueradingVector[7]]=Json::Value();
             }
         }
         return ret;
@@ -1225,14 +1114,6 @@ Json::Value TUser::toMasqueradedJson(
     else
     {
         ret["phone"]=Json::Value();
-    }
-    if(getMail())
-    {
-        ret["mail"]=getValueOfMail();
-    }
-    else
-    {
-        ret["mail"]=Json::Value();
     }
     if(getPassword())
     {
@@ -1293,29 +1174,19 @@ bool TUser::validateJsonForCreation(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(3, "phone", pJson["phone"], err, true))
             return false;
     }
-    else
-    {
-        err="The phone column cannot be null";
-        return false;
-    }
-    if(pJson.isMember("mail"))
-    {
-        if(!validJsonOfField(4, "mail", pJson["mail"], err, true))
-            return false;
-    }
     if(pJson.isMember("password"))
     {
-        if(!validJsonOfField(5, "password", pJson["password"], err, true))
+        if(!validJsonOfField(4, "password", pJson["password"], err, true))
             return false;
     }
     if(pJson.isMember("create_time"))
     {
-        if(!validJsonOfField(6, "create_time", pJson["create_time"], err, true))
+        if(!validJsonOfField(5, "create_time", pJson["create_time"], err, true))
             return false;
     }
     if(pJson.isMember("update_time"))
     {
-        if(!validJsonOfField(7, "update_time", pJson["update_time"], err, true))
+        if(!validJsonOfField(6, "update_time", pJson["update_time"], err, true))
             return false;
     }
     return true;
@@ -1324,7 +1195,7 @@ bool TUser::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                                                const std::vector<std::string> &pMasqueradingVector,
                                                std::string &err)
 {
-    if(pMasqueradingVector.size() != 8)
+    if(pMasqueradingVector.size() != 7)
     {
         err = "Bad masquerading vector";
         return false;
@@ -1371,11 +1242,6 @@ bool TUser::validateMasqueradedJsonForCreation(const Json::Value &pJson,
               if(!validJsonOfField(3, pMasqueradingVector[3], pJson[pMasqueradingVector[3]], err, true))
                   return false;
           }
-        else
-        {
-            err="The " + pMasqueradingVector[3] + " column cannot be null";
-            return false;
-        }
       }
       if(!pMasqueradingVector[4].empty())
       {
@@ -1398,14 +1264,6 @@ bool TUser::validateMasqueradedJsonForCreation(const Json::Value &pJson,
           if(pJson.isMember(pMasqueradingVector[6]))
           {
               if(!validJsonOfField(6, pMasqueradingVector[6], pJson[pMasqueradingVector[6]], err, true))
-                  return false;
-          }
-      }
-      if(!pMasqueradingVector[7].empty())
-      {
-          if(pJson.isMember(pMasqueradingVector[7]))
-          {
-              if(!validJsonOfField(7, pMasqueradingVector[7], pJson[pMasqueradingVector[7]], err, true))
                   return false;
           }
       }
@@ -1444,24 +1302,19 @@ bool TUser::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(3, "phone", pJson["phone"], err, false))
             return false;
     }
-    if(pJson.isMember("mail"))
-    {
-        if(!validJsonOfField(4, "mail", pJson["mail"], err, false))
-            return false;
-    }
     if(pJson.isMember("password"))
     {
-        if(!validJsonOfField(5, "password", pJson["password"], err, false))
+        if(!validJsonOfField(4, "password", pJson["password"], err, false))
             return false;
     }
     if(pJson.isMember("create_time"))
     {
-        if(!validJsonOfField(6, "create_time", pJson["create_time"], err, false))
+        if(!validJsonOfField(5, "create_time", pJson["create_time"], err, false))
             return false;
     }
     if(pJson.isMember("update_time"))
     {
-        if(!validJsonOfField(7, "update_time", pJson["update_time"], err, false))
+        if(!validJsonOfField(6, "update_time", pJson["update_time"], err, false))
             return false;
     }
     return true;
@@ -1470,7 +1323,7 @@ bool TUser::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
                                              const std::vector<std::string> &pMasqueradingVector,
                                              std::string &err)
 {
-    if(pMasqueradingVector.size() != 8)
+    if(pMasqueradingVector.size() != 7)
     {
         err = "Bad masquerading vector";
         return false;
@@ -1514,11 +1367,6 @@ bool TUser::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
       if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
       {
           if(!validJsonOfField(6, pMasqueradingVector[6], pJson[pMasqueradingVector[6]], err, false))
-              return false;
-      }
-      if(!pMasqueradingVector[7].empty() && pJson.isMember(pMasqueradingVector[7]))
-      {
-          if(!validJsonOfField(7, pMasqueradingVector[7], pJson[pMasqueradingVector[7]], err, false))
               return false;
       }
     }
@@ -1599,8 +1447,7 @@ bool TUser::validJsonOfField(size_t index,
         case 3:
             if(pJson.isNull())
             {
-                err="The " + fieldName + " column cannot be null";
-                return false;
+                return true;
             }
             if(!pJson.isString())
             {
@@ -1647,28 +1494,8 @@ bool TUser::validJsonOfField(size_t index,
                 err="Type error in the "+fieldName+" field";
                 return false;
             }
-            // asString().length() creates a string object, is there any better way to validate the length?
-            if(pJson.isString() && pJson.asString().length() > 255)
-            {
-                err="String length exceeds limit for the " +
-                    fieldName +
-                    " field (the maximum value is 255)";
-                return false;
-            }
-
             break;
         case 6:
-            if(pJson.isNull())
-            {
-                return true;
-            }
-            if(!pJson.isString())
-            {
-                err="Type error in the "+fieldName+" field";
-                return false;
-            }
-            break;
-        case 7:
             if(pJson.isNull())
             {
                 return true;

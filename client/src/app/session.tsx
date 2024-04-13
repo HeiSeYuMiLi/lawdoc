@@ -1,8 +1,13 @@
-let session = '1'
-export function checkSession() {
-    return (session === '')
+import { useEffect } from "react";
+
+export function setToken(token: string) {
+    'use client';
+    localStorage.setItem('token', token);
+    // sessionStorage.setItem('token',token);
 }
 
-export function setSession(token: string) {
-    session = token;
+export function getToken() {
+    'use client';
+    return localStorage.getItem('token');
+    // return sessionStorage.getItem('token');
 }

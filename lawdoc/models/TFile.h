@@ -45,7 +45,7 @@ class TFile
     struct Cols
     {
         static const std::string _id;
-        static const std::string _user_uuid;
+        static const std::string _user_id;
         static const std::string _create_time;
         static const std::string _file_name;
         static const std::string _file_type;
@@ -110,14 +110,13 @@ class TFile
     ///Set the value of the column id
     void setId(const int32_t &pId) noexcept;
 
-    /**  For column user_uuid  */
-    ///Get the value of the column user_uuid, returns the default value if the column is null
-    const std::string &getValueOfUserUuid() const noexcept;
+    /**  For column user_id  */
+    ///Get the value of the column user_id, returns the default value if the column is null
+    const int32_t &getValueOfUserId() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<std::string> &getUserUuid() const noexcept;
-    ///Set the value of the column user_uuid
-    void setUserUuid(const std::string &pUserUuid) noexcept;
-    void setUserUuid(std::string &&pUserUuid) noexcept;
+    const std::shared_ptr<int32_t> &getUserId() const noexcept;
+    ///Set the value of the column user_id
+    void setUserId(const int32_t &pUserId) noexcept;
 
     /**  For column create_time  */
     ///Get the value of the column create_time, returns the default value if the column is null
@@ -188,7 +187,7 @@ class TFile
     ///For mysql or sqlite3
     void updateId(const uint64_t id);
     std::shared_ptr<int32_t> id_;
-    std::shared_ptr<std::string> userUuid_;
+    std::shared_ptr<int32_t> userId_;
     std::shared_ptr<::trantor::Date> createTime_;
     std::shared_ptr<std::string> fileName_;
     std::shared_ptr<std::string> fileType_;
@@ -227,7 +226,7 @@ class TFile
             ++parametersCount;
         if(dirtyFlag_[1])
         {
-            sql += "user_uuid,";
+            sql += "user_id,";
             ++parametersCount;
         }
         sql += "create_time,";

@@ -48,7 +48,6 @@ class TUser
         static const std::string _name;
         static const std::string _uuid;
         static const std::string _phone;
-        static const std::string _mail;
         static const std::string _password;
         static const std::string _create_time;
         static const std::string _update_time;
@@ -137,16 +136,7 @@ class TUser
     ///Set the value of the column phone
     void setPhone(const std::string &pPhone) noexcept;
     void setPhone(std::string &&pPhone) noexcept;
-
-    /**  For column mail  */
-    ///Get the value of the column mail, returns the default value if the column is null
-    const std::string &getValueOfMail() const noexcept;
-    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<std::string> &getMail() const noexcept;
-    ///Set the value of the column mail
-    void setMail(const std::string &pMail) noexcept;
-    void setMail(std::string &&pMail) noexcept;
-    void setMailToNull() noexcept;
+    void setPhoneToNull() noexcept;
 
     /**  For column password  */
     ///Get the value of the column password, returns the default value if the column is null
@@ -177,7 +167,7 @@ class TUser
     void setUpdateTimeToNull() noexcept;
 
 
-    static size_t getColumnNumber() noexcept {  return 8;  }
+    static size_t getColumnNumber() noexcept {  return 7;  }
     static const std::string &getColumnName(size_t index) noexcept(false);
 
     Json::Value toJson() const;
@@ -202,7 +192,6 @@ class TUser
     std::shared_ptr<std::string> name_;
     std::shared_ptr<std::string> uuid_;
     std::shared_ptr<std::string> phone_;
-    std::shared_ptr<std::string> mail_;
     std::shared_ptr<std::string> password_;
     std::shared_ptr<::trantor::Date> createTime_;
     std::shared_ptr<::trantor::Date> updateTime_;
@@ -217,7 +206,7 @@ class TUser
         const bool notNull_;
     };
     static const std::vector<MetaData> metaData_;
-    bool dirtyFlag_[8]={ false };
+    bool dirtyFlag_[7]={ false };
   public:
     static const std::string &sqlForFindingByPrimaryKey()
     {
@@ -254,23 +243,18 @@ class TUser
         }
         if(dirtyFlag_[4])
         {
-            sql += "mail,";
-            ++parametersCount;
-        }
-        if(dirtyFlag_[5])
-        {
             sql += "password,";
             ++parametersCount;
         }
         sql += "create_time,";
         ++parametersCount;
-        if(!dirtyFlag_[6])
+        if(!dirtyFlag_[5])
         {
             needSelection=true;
         }
         sql += "update_time,";
         ++parametersCount;
-        if(!dirtyFlag_[7])
+        if(!dirtyFlag_[6])
         {
             needSelection=true;
         }
@@ -309,16 +293,11 @@ class TUser
             sql.append("?,");
 
         }
-        if(dirtyFlag_[6])
-        {
-            sql.append("?,");
-
-        }
         else
         {
             sql +="default,";
         }
-        if(dirtyFlag_[7])
+        if(dirtyFlag_[6])
         {
             sql.append("?,");
 

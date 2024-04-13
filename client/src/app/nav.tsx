@@ -2,6 +2,8 @@
 
 import "bulma"
 import { useRouter } from 'next/navigation'
+import { setToken } from "./session"
+import { getToken } from "./session"
 import React from 'react'
 
 export function Nav() {
@@ -15,6 +17,16 @@ export function Nav() {
             router.replace('/home');
         } else if (buttonId === 'work') {
             router.replace('/work');
+        } else if (buttonId === 'show') {
+            router.replace('/show');
+        }
+    };
+
+    const signout = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setToken('');
+        const token = getToken()
+        if (token === null || token === '') {
+            router.replace('/user/login');
         }
     };
 
@@ -50,7 +62,7 @@ export function Nav() {
                 </span>
                 展示页面
             </button>
-            <button className="button is-primary" style={{ width: "100%" }}>
+            <button className="button is-primary" style={{ width: "100%" }} onClick={signout}>
                 <span className="panel-icon is-small is-left">
                     <i className="fas fa-sign-out-alt" />
                 </span>

@@ -39,7 +39,7 @@ public:
 public:
   // 异步*****************************************************
   static void async_insert(modelt const &model,
-                           FUNCTION_BOOL &&callback = nullptr) noexcept {
+                           FUNCTION_BOOL &&callback = nullptr) {
     mapper mp(drogon::app().getDbClient());
     mp.insert(
         model,
@@ -55,12 +55,12 @@ public:
         });
   }
   static void async_insert(jsonv const &json,
-                           FUNCTION_BOOL &&callback = nullptr) noexcept {
+                           FUNCTION_BOOL &&callback = nullptr) {
     async_insert(modelt(json), std::move(callback));
   }
 
   static void async_update(modelt const &model,
-                           FUNCTION_BOOL &&callback = nullptr) noexcept {
+                           FUNCTION_BOOL &&callback = nullptr) {
     mapper mp(drogon::app().getDbClient());
     mp.update(
         model,
@@ -76,7 +76,7 @@ public:
         });
   }
   static void async_update(jsonv const &json,
-                           FUNCTION_BOOL &&callback = nullptr) noexcept {
+                           FUNCTION_BOOL &&callback = nullptr) {
     async_update(modelt(json), std::move(callback));
   }
 
