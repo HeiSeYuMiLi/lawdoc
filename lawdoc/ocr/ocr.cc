@@ -85,6 +85,9 @@ std::string parse_image(std::string_view img_name) {
   // 移除空格
   content.erase(std::remove(content.begin(), content.end(), ' '),
                 content.end());
+  // 移除\n
+  content.erase(std::remove(content.begin(), content.end(), '\n'),
+                content.end());
 
   api->End();
   delete[] output;

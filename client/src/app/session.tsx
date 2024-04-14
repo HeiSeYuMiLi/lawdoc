@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 
 export function setToken(token: string) {
     'use client';

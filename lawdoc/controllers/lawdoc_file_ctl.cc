@@ -5,6 +5,7 @@
 #include <drogon/HttpRequest.h>
 #include <drogon/HttpResponse.h>
 #include <drogon/utils/Utilities.h>
+#include <json/reader.h>
 #include <json/value.h>
 
 using namespace lawdoc;
@@ -82,14 +83,52 @@ Task<> file_ctl::get_file_list(HttpRequestPtr req, FUNCTION callback) {
   }
 
   criteria crit{};
-  crit.set_crit("uuid", "=", token);
+  crit.set_crit(
+      "user_id", "=",
+      std::to_string((co_await t_user::query_by_uuid(token)).getValueOfId()));
   auto files = co_await t_file::coro_query(crit);
   auto json{utils::cb_json()};
   json["data"]["files"] = Json::arrayValue;
   for (auto &&file : files) {
     jsonv j{};
-    j["file"] = file.getValueOfFileName();
+    j["fileName"] = file.getValueOfFileName();
+    j["fileUuid"] = file.getValueOfFileUuid();
     json["data"]["files"].append(j);
   }
+  callback(HttpResponse::newHttpJsonResponse(json));
+}
+
+Task<> file_ctl::get_file(HttpRequestPtr req, FUNCTION callback) {
+  auto token = req->getHeader("Authorization");
+  if (!co_await t_user::check_uuid(token)) {
+    callback(utils::error("登录失效", 456));
+    co_return;
+  }
+
+  auto json_ptr = req->getJsonObject();
+  if (!json_ptr) {
+    callback(utils::error("参数缺失", 456));
+    co_return;
+  }
+  auto req_json{*json_ptr};
+
+  auto file_uuid = req_json["file_uuid"].asString();
+
+  // 查t_file表
+  criteria crit{};
+  crit.set_crit("file_uuid", "=", file_uuid);
+  auto files = co_await t_file::coro_query(crit);
+  auto entities = co_await t_entities::coro_query(crit);
+
+  auto json{utils::cb_json()};
+  json["data"] = files[0].toJson();
+
+  Json::Reader reader;
+  jsonv ejson{};
+  reader.parse(entities[0].getValueOfEntities(),ejson);
+  // json["data"]["nh"]=ejson["人名"];
+  // json["data"]["ns"]=ejson["地名"];
+  // json["data"]["nt"]=ejson["时间"];
+  json["data"]["entities"] = ejson;
   callback(HttpResponse::newHttpJsonResponse(json));
 }
