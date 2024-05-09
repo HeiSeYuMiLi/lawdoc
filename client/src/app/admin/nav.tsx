@@ -1,37 +1,41 @@
 'use client'
 
 import "bulma"
-import { useRouter } from 'next/navigation'
-import { setToken } from "./session"
+import { useRouter } from 'next/navigation';
+import { setToken, getToken } from "../session";
 import React from 'react';
 import Link from "next/link";
 
-export function Nav() {
+export function AdminNav() {
     const router = useRouter()
 
     const signout = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
         setToken('');
-        router.replace('/user/login');
+        const token = getToken()
+        if (token === null || token === '') {
+            router.replace('/user/login');
+        }
     };
 
     return (
         <div className="leftNav">
-            <span className="panel-icon is-small is-left">
-                <i className="fas fa-list" />
-            </span>
+            <section className="hero is-small">
+                <div className="hero-body">
+                    <p className="subtitle">管理员页面</p>
+                </div>
+            </section>
             <hr style={{ backgroundColor: "black" }} />
-            <Link href="/home">
+            <Link href="/admin/home">
                 <button className="button is-primary">
                     <span className="panel-icon is-small is-left">
                         <i className="fas fa-home" />
                     </span>
                     <p style={{ color: "black" }}>
-                        个人主页
+                        管理主页
                     </p>
                 </button>
             </Link>
-            <Link href="/file">
+            <Link href="/admin/file">
                 <button className="button is-primary">
                     <span className="panel-icon is-small is-left">
                         <i className="fas fa-folder" />
@@ -41,23 +45,13 @@ export function Nav() {
                     </p>
                 </button>
             </Link>
-            <Link href="/work">
+            <Link href="/admin/user">
                 <button className="button is-primary">
                     <span className="panel-icon is-small is-left">
                         <i className="fas fa-edit" />
                     </span>
                     <p style={{ color: "black" }}>
-                        工作页面
-                    </p>
-                </button>
-            </Link>
-            <Link href="/show">
-                <button className="button is-primary">
-                    <span className="panel-icon is-small is-left">
-                        <i className="fas fa-file-alt" />
-                    </span>
-                    <p style={{ color: "black" }}>
-                        展示页面
+                        用户信息
                     </p>
                 </button>
             </Link>

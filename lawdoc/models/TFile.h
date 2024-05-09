@@ -47,10 +47,12 @@ class TFile
         static const std::string _id;
         static const std::string _user_id;
         static const std::string _create_time;
+        static const std::string _update_time;
         static const std::string _file_name;
         static const std::string _file_type;
         static const std::string _file_uuid;
         static const std::string _source_file;
+        static const std::string _status;
     };
 
     static const int primaryKeyNumber;
@@ -127,6 +129,15 @@ class TFile
     void setCreateTime(const ::trantor::Date &pCreateTime) noexcept;
     void setCreateTimeToNull() noexcept;
 
+    /**  For column update_time  */
+    ///Get the value of the column update_time, returns the default value if the column is null
+    const ::trantor::Date &getValueOfUpdateTime() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<::trantor::Date> &getUpdateTime() const noexcept;
+    ///Set the value of the column update_time
+    void setUpdateTime(const ::trantor::Date &pUpdateTime) noexcept;
+    void setUpdateTimeToNull() noexcept;
+
     /**  For column file_name  */
     ///Get the value of the column file_name, returns the default value if the column is null
     const std::string &getValueOfFileName() const noexcept;
@@ -164,8 +175,17 @@ class TFile
     void setSourceFile(std::string &&pSourceFile) noexcept;
     void setSourceFileToNull() noexcept;
 
+    /**  For column status  */
+    ///Get the value of the column status, returns the default value if the column is null
+    const int8_t &getValueOfStatus() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<int8_t> &getStatus() const noexcept;
+    ///Set the value of the column status
+    void setStatus(const int8_t &pStatus) noexcept;
+    void setStatusToNull() noexcept;
 
-    static size_t getColumnNumber() noexcept {  return 7;  }
+
+    static size_t getColumnNumber() noexcept {  return 9;  }
     static const std::string &getColumnName(size_t index) noexcept(false);
 
     Json::Value toJson() const;
@@ -189,10 +209,12 @@ class TFile
     std::shared_ptr<int32_t> id_;
     std::shared_ptr<int32_t> userId_;
     std::shared_ptr<::trantor::Date> createTime_;
+    std::shared_ptr<::trantor::Date> updateTime_;
     std::shared_ptr<std::string> fileName_;
     std::shared_ptr<std::string> fileType_;
     std::shared_ptr<std::string> fileUuid_;
     std::shared_ptr<std::string> sourceFile_;
+    std::shared_ptr<int8_t> status_;
     struct MetaData
     {
         const std::string colName_;
@@ -204,7 +226,7 @@ class TFile
         const bool notNull_;
     };
     static const std::vector<MetaData> metaData_;
-    bool dirtyFlag_[7]={ false };
+    bool dirtyFlag_[9]={ false };
   public:
     static const std::string &sqlForFindingByPrimaryKey()
     {
@@ -235,25 +257,37 @@ class TFile
         {
             needSelection=true;
         }
-        if(dirtyFlag_[3])
+        sql += "update_time,";
+        ++parametersCount;
+        if(!dirtyFlag_[3])
+        {
+            needSelection=true;
+        }
+        if(dirtyFlag_[4])
         {
             sql += "file_name,";
             ++parametersCount;
         }
-        if(dirtyFlag_[4])
+        if(dirtyFlag_[5])
         {
             sql += "file_type,";
             ++parametersCount;
         }
-        if(dirtyFlag_[5])
+        if(dirtyFlag_[6])
         {
             sql += "file_uuid,";
             ++parametersCount;
         }
-        if(dirtyFlag_[6])
+        if(dirtyFlag_[7])
         {
             sql += "source_file,";
             ++parametersCount;
+        }
+        sql += "status,";
+        ++parametersCount;
+        if(!dirtyFlag_[8])
+        {
+            needSelection=true;
         }
         needSelection=true;
         if(parametersCount > 0)
@@ -284,6 +318,10 @@ class TFile
             sql.append("?,");
 
         }
+        else
+        {
+            sql +="default,";
+        }
         if(dirtyFlag_[4])
         {
             sql.append("?,");
@@ -298,6 +336,20 @@ class TFile
         {
             sql.append("?,");
 
+        }
+        if(dirtyFlag_[7])
+        {
+            sql.append("?,");
+
+        }
+        if(dirtyFlag_[8])
+        {
+            sql.append("?,");
+
+        }
+        else
+        {
+            sql +="default,";
         }
         if(parametersCount > 0)
         {

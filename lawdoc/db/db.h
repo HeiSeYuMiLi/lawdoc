@@ -8,11 +8,11 @@ namespace lawdoc {
 
 struct criteria {
   int page{0};
-  int size{20};
+  int size{10};
   drogon::orm::Criteria crit{};
   std::string col{"id"};
   drogon::orm::SortOrder order{drogon::orm::SortOrder::ASC};
-  
+
   criteria &set_crit(std::string const &col, std::string const &opera,
                      std::string const &value) {
     Json::Value json{Json::arrayValue};
@@ -134,15 +134,39 @@ public:
   static drogon::Task<std::vector<modelt>> coro_query(criteria const &crit) {
     coro_mapper mp(drogon::app().getDbClient());
     try {
-      auto res = co_await mp.orderBy(crit.col, crit.order)
-                     .limit(crit.size)
-                     .offset(crit.page * crit.size)
-                     .findBy(crit.crit);
+      auto awaiter=mp.orderBy(crit.col, crit.order);
+      if(crit.size!=-1)
+        awaiter.limit(crit.size).offset(crit.page * crit.size);
+      auto res = co_await awaiter.findBy(crit.crit);
       LOG_INFO << "table: " << table_name_ << " query successful";
       co_return res;
     } catch (drogon::orm::DrogonDbException const &e) {
       LOG_ERROR << "error: " << e.base().what();
       co_return std::vector<modelt>{};
+    }
+  }
+
+  static drogon::Task<bool> coro_delete(criteria const &crit) {
+    coro_mapper mp(drogon::app().getDbClient());
+    try {
+      co_await mp.deleteBy(crit.crit);
+      LOG_INFO << "table: " << table_name_ << " delete successful";
+      co_return true;
+    } catch (drogon::orm::DrogonDbException const &e) {
+      LOG_ERROR << "error: " << e.base().what();
+      co_return false;
+    }
+  }
+
+  static drogon::Task<int> coro_count(criteria const &crit) {
+    coro_mapper mp(drogon::app().getDbClient());
+    try {
+      auto res = co_await mp.count(crit.crit);
+      LOG_INFO << "table: " << table_name_ << " query count successful";
+      co_return res;
+    } catch (drogon::orm::DrogonDbException const &e) {
+      LOG_ERROR << "error: " << e.base().what();
+      co_return false;
     }
   }
 

@@ -35,7 +35,6 @@ aux_source_directory(controllers CTL_SRC)
 aux_source_directory(filters FILTER_SRC)
 aux_source_directory(plugins PLUGIN_SRC)
 aux_source_directory(models MODEL_SRC)
-aux_source_directory(ocr OCR_SRC)
 aux_source_directory(utils UTILS_SRC)
 aux_source_directory(db DB_SRC)
 aux_source_directory(src SRC_SRC)
@@ -53,7 +52,6 @@ target_sources(${PROJECT_NAME}
                ${FILTER_SRC}
                ${PLUGIN_SRC}
                ${MODEL_SRC}
-               ${OCR_SRC}
                ${UTILS_SRC}
                ${DB_SRC}
                ${SRC_SRC})

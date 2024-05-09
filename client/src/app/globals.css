@@ -20,12 +20,9 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
+  background: linear-gradient(to bottom,
       transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
 }
 
 @layer utilities {
@@ -34,13 +31,42 @@ body {
   }
 }
 
-.trans1{
-  background-color: rgba(255,255,255,0.5)!important;
+.trans1 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
 }
 
-.formButton{
+.formButton {
   border-radius: 8px;
   width: 100%;
   height: 5.6vh;
-  background-color: rgba(0,209,178,0.8)!important;
+  background-color: rgba(0, 209, 178, 0.8) !important;
+}
+
+.hide {
+  display: none;
+}
+
+.myDIV:hover+.hide {
+  display: block;
+  /* color: red; */
+}
+
+.leftNav {
+  width: 200px;
+  height: 100vh;
+  background-color: #218fc4;
+  position: fixed;
+  padding: 20px;
+}
+
+.leftNav button{
+  width: 100%;
+  background-color: #218fc4;
+}
+
+.rightDiv {
+  flex-grow: 1;
+  padding: 20px;
+  margin-left: 200px;
+  background-color: white;
 }

@@ -7,11 +7,12 @@ import React from 'react'
 export default function Page() {
   const router = useRouter()
 
-  if (getToken()) {
-    router.push('/user/login');
+  const token = getToken()
+  if (token === null || token === '') {
+      router.replace('/user/login');
+  }else{
+    router.replace('/home')
   }
-
-  router.replace('/home')
 
   return (
     <></>

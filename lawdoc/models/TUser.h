@@ -46,11 +46,14 @@ class TUser
     {
         static const std::string _id;
         static const std::string _name;
+        static const std::string _sex;
         static const std::string _uuid;
         static const std::string _phone;
         static const std::string _password;
+        static const std::string _is_system;
         static const std::string _create_time;
         static const std::string _update_time;
+        static const std::string _img_path;
     };
 
     static const int primaryKeyNumber;
@@ -119,6 +122,15 @@ class TUser
     void setName(const std::string &pName) noexcept;
     void setName(std::string &&pName) noexcept;
 
+    /**  For column sex  */
+    ///Get the value of the column sex, returns the default value if the column is null
+    const int8_t &getValueOfSex() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<int8_t> &getSex() const noexcept;
+    ///Set the value of the column sex
+    void setSex(const int8_t &pSex) noexcept;
+    void setSexToNull() noexcept;
+
     /**  For column uuid  */
     ///Get the value of the column uuid, returns the default value if the column is null
     const std::string &getValueOfUuid() const noexcept;
@@ -148,6 +160,15 @@ class TUser
     void setPassword(std::string &&pPassword) noexcept;
     void setPasswordToNull() noexcept;
 
+    /**  For column is_system  */
+    ///Get the value of the column is_system, returns the default value if the column is null
+    const int8_t &getValueOfIsSystem() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<int8_t> &getIsSystem() const noexcept;
+    ///Set the value of the column is_system
+    void setIsSystem(const int8_t &pIsSystem) noexcept;
+    void setIsSystemToNull() noexcept;
+
     /**  For column create_time  */
     ///Get the value of the column create_time, returns the default value if the column is null
     const ::trantor::Date &getValueOfCreateTime() const noexcept;
@@ -166,8 +187,18 @@ class TUser
     void setUpdateTime(const ::trantor::Date &pUpdateTime) noexcept;
     void setUpdateTimeToNull() noexcept;
 
+    /**  For column img_path  */
+    ///Get the value of the column img_path, returns the default value if the column is null
+    const std::string &getValueOfImgPath() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<std::string> &getImgPath() const noexcept;
+    ///Set the value of the column img_path
+    void setImgPath(const std::string &pImgPath) noexcept;
+    void setImgPath(std::string &&pImgPath) noexcept;
+    void setImgPathToNull() noexcept;
 
-    static size_t getColumnNumber() noexcept {  return 7;  }
+
+    static size_t getColumnNumber() noexcept {  return 10;  }
     static const std::string &getColumnName(size_t index) noexcept(false);
 
     Json::Value toJson() const;
@@ -190,11 +221,14 @@ class TUser
     void updateId(const uint64_t id);
     std::shared_ptr<int32_t> id_;
     std::shared_ptr<std::string> name_;
+    std::shared_ptr<int8_t> sex_;
     std::shared_ptr<std::string> uuid_;
     std::shared_ptr<std::string> phone_;
     std::shared_ptr<std::string> password_;
+    std::shared_ptr<int8_t> isSystem_;
     std::shared_ptr<::trantor::Date> createTime_;
     std::shared_ptr<::trantor::Date> updateTime_;
+    std::shared_ptr<std::string> imgPath_;
     struct MetaData
     {
         const std::string colName_;
@@ -206,7 +240,7 @@ class TUser
         const bool notNull_;
     };
     static const std::vector<MetaData> metaData_;
-    bool dirtyFlag_[7]={ false };
+    bool dirtyFlag_[10]={ false };
   public:
     static const std::string &sqlForFindingByPrimaryKey()
     {
@@ -231,32 +265,49 @@ class TUser
             sql += "name,";
             ++parametersCount;
         }
-        if(dirtyFlag_[2])
+        sql += "sex,";
+        ++parametersCount;
+        if(!dirtyFlag_[2])
+        {
+            needSelection=true;
+        }
+        if(dirtyFlag_[3])
         {
             sql += "uuid,";
             ++parametersCount;
         }
-        if(dirtyFlag_[3])
+        if(dirtyFlag_[4])
         {
             sql += "phone,";
             ++parametersCount;
         }
-        if(dirtyFlag_[4])
+        if(dirtyFlag_[5])
         {
             sql += "password,";
             ++parametersCount;
         }
+        sql += "is_system,";
+        ++parametersCount;
+        if(!dirtyFlag_[6])
+        {
+            needSelection=true;
+        }
         sql += "create_time,";
         ++parametersCount;
-        if(!dirtyFlag_[5])
+        if(!dirtyFlag_[7])
         {
             needSelection=true;
         }
         sql += "update_time,";
         ++parametersCount;
-        if(!dirtyFlag_[6])
+        if(!dirtyFlag_[8])
         {
             needSelection=true;
+        }
+        if(dirtyFlag_[9])
+        {
+            sql += "img_path,";
+            ++parametersCount;
         }
         needSelection=true;
         if(parametersCount > 0)
@@ -278,6 +329,10 @@ class TUser
             sql.append("?,");
 
         }
+        else
+        {
+            sql +="default,";
+        }
         if(dirtyFlag_[3])
         {
             sql.append("?,");
@@ -293,10 +348,6 @@ class TUser
             sql.append("?,");
 
         }
-        else
-        {
-            sql +="default,";
-        }
         if(dirtyFlag_[6])
         {
             sql.append("?,");
@@ -305,6 +356,29 @@ class TUser
         else
         {
             sql +="default,";
+        }
+        if(dirtyFlag_[7])
+        {
+            sql.append("?,");
+
+        }
+        else
+        {
+            sql +="default,";
+        }
+        if(dirtyFlag_[8])
+        {
+            sql.append("?,");
+
+        }
+        else
+        {
+            sql +="default,";
+        }
+        if(dirtyFlag_[9])
+        {
+            sql.append("?,");
+
         }
         if(parametersCount > 0)
         {

@@ -19,11 +19,10 @@ std::vector<std::string> supported_img_type() {
   return poppler::image::supported_image_formats();
 }
 
-std::vector<std::string> pdf2image(std::string_view file_name,
-                                   std::string_view img_type) {
+std::vector<std::string> pdf2image(std::string_view file_name) {
   // 创建一个poppler::document对象
   std::unique_ptr<poppler::document> doc(
-      poppler::document::load_from_file("../file/" + std::string(file_name)));
+      poppler::document::load_from_file(FILE_PATH + std::string(file_name)));
 
   // 检查文档是否成功加载
   if (!doc.get()) {
@@ -41,6 +40,7 @@ std::vector<std::string> pdf2image(std::string_view file_name,
 
   std::vector<std::string> img_names;
 
+  // 遍历每一页，然后转为图片
   for (auto i{0}; i < doc->pages(); ++i) {
     std::unique_ptr<poppler::page> p(doc->create_page(i));
     if (!p.get()) {
@@ -52,10 +52,10 @@ std::vector<std::string> pdf2image(std::string_view file_name,
       utils::error("rendering failed");
       return {};
     }
-    auto img_name = drogon::utils::getUuid() + "." + std::string(img_type);
+    // 给图片取一个随机的名称
+    auto img_name = drogon::utils::getUuid() + IMG_TYPE;
     img_names.push_back(img_name);
-    if (!img.save(std::string(img_root_directory) + img_name,
-                  std::string(img_type))) {
+    if (!img.save(IMG_PATH + img_name, "png")) {
       utils::error("saving to file failed");
       return {};
     }
@@ -63,7 +63,7 @@ std::vector<std::string> pdf2image(std::string_view file_name,
   return img_names;
 }
 
-std::string parse_image(std::string_view img_name) {
+std::string parse_image(std::string_view img_name, std::string_view img_path) {
   std::unique_ptr<tesseract::TessBaseAPI> api =
       std::make_unique<tesseract::TessBaseAPI>();
   if (api->Init("", "chi_sim")) {
@@ -71,23 +71,16 @@ std::string parse_image(std::string_view img_name) {
     return {};
   }
 
-  Pix *image =
-      pixRead((std::string(img_root_directory).append(img_name)).data());
+  Pix *image = pixRead((std::string(img_path) + std::string(img_name)).data());
   api->SetImage(image);
   auto output = api->GetUTF8Text();
-  // std::ofstream out(std::string(doc_root_directory) +
-  //                   utils::remove_file_suff(img_name).append(".txt"));
-  // out << output;
-  // if (out.is_open()) {
-  //   out.close();
-  // }
   std::string content{output};
   // 移除空格
   content.erase(std::remove(content.begin(), content.end(), ' '),
                 content.end());
   // 移除\n
-  content.erase(std::remove(content.begin(), content.end(), '\n'),
-                content.end());
+  // content.erase(std::remove(content.begin(), content.end(), '\n'),
+  //               content.end());
 
   api->End();
   delete[] output;

@@ -1,12 +1,12 @@
 'use client'
 
 import "bulma"
-import { useEffect } from 'react';
 import { useState } from 'react';
 import React from 'react'
 import axios from 'axios';
 import { setToken } from "@/app/session";
 import { useRouter } from 'next/navigation'
+import Link from "next/link";
 
 export default function RecoverPasswd() {
 
@@ -28,7 +28,6 @@ export default function RecoverPasswd() {
             if (response.status === 200) {
                 const data = response.data
                 if (data.code === 0) {
-                    console.log(data);
                     setToken(data.data.token);
                     router.replace('/home')
                 } else {
@@ -63,11 +62,6 @@ export default function RecoverPasswd() {
         } catch (error) {
             console.error('An unexpected error occurred:', error);
         }
-    };
-
-    const signin = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        router.replace('/user/login');
     };
 
     return (
@@ -110,9 +104,10 @@ export default function RecoverPasswd() {
                                     </div>
                                 </div>
                             </div>
-                            <button className="submit is-primary formButton">找回</button>
-                            <button className="button is-primary" onClick={signin}
-                                style={{ width: "100%", backgroundColor: "rgba(0,0,0,0)" }}>返回登录</button>
+                            <button className="submit is-primary formButton">找 回</button>
+                            <Link href='/user/login'>
+                                <center style={{ color: 'black' }}>返回登录</center>
+                            </Link>
                         </div>
                     </form>
 

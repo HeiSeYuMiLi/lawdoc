@@ -1,9 +1,10 @@
-export function setFileUuid(uuid: string) {
+
+export function setAdmin(uuid: string) {
     'use client';
-    sessionStorage.setItem('fileUuid', uuid);
+    sessionStorage.setItem('uuid', uuid);
 }
 
-export function getFileUuid() {
+export function getAdmin() {
     'use client';
-    return sessionStorage.getItem('fileUuid');
+    return sessionStorage.getItem('uuid');
 }

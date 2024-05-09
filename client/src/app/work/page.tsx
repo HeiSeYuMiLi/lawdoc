@@ -1,27 +1,40 @@
 'use client'
 
 import "bulma"
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getToken } from '@/app/session'
-import React from 'react'
 import { Nav } from '@/app/nav'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Link from "next/link"
 
 export default function Work() {
     const router = useRouter()
+    const searchParams = useSearchParams();
     const [fileName, setFileName] = useState('');
+    const [fileName2, setFileName2] = useState('');
     const [fileUuid, setFileUuid] = useState('');
     const [fileType, setFileType] = useState('');
     const [file, setFile] = useState<File | null>(null);
-    const [cond1, setCond1] = useState(false);
-    const [cond2, setCond2] = useState(false);
-    const [cond3, setCond3] = useState(false);
 
     const token = getToken()
     if (token === null || token === '') {
         router.replace('/user/login');
     }
+
+    useEffect(() => {
+        const uuid = searchParams.get('uuid');
+        const name = searchParams.get('name');
+        if (uuid !== null && name !== null) {
+            const form = document.getElementById('uploadForm');
+            const div = document.getElementById('nerDiv2');
+            form?.classList.add('is-hidden');
+            div?.classList.remove('is-hidden');
+            setFileName2(name);
+            setFileUuid(uuid);
+            setFileType(name.split('.')[1]);
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -49,7 +62,10 @@ export default function Work() {
                 const data = response.data;
                 if (data.code === 0) {
                     alert('文件上传成功');
-                    setCond1(true)
+                    const fileUploadButton = document.getElementById('fileUploadButton');
+                    fileUploadButton?.classList.add('is-hidden');
+                    const nerDiv = document.getElementById('nerDiv');
+                    nerDiv?.classList.remove('is-hidden');
                     setFileUuid(data.data.file_uuid);
                     setFileType(data.data.file_type);
                 }
@@ -70,13 +86,9 @@ export default function Work() {
 
         setFile(null);
         setFileName('');
-
-        setCond1(false)
-        setCond2(false)
-        setCond3(false)
     }
 
-    const handleCancel2 = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSubmit2 = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
 
         const url = 'http://localhost:22222/lawdoc/ner';
@@ -85,9 +97,8 @@ export default function Work() {
                 'Authorization': token
             },
         }
-        setCond3(true)
-        console.log(fileUuid);
-        console.log(fileType);
+        const progressDiv = document.getElementById('progressDiv');
+        progressDiv?.classList.remove('is-hidden');
 
         try {
             const response = await axios.post(url, {
@@ -95,12 +106,16 @@ export default function Work() {
                 'file_type': fileType
             }, config)
 
-            setCond3(false)
+            progressDiv?.classList.add('is-hidden');
             if (response.status === 200) {
                 const data = response.data;
                 if (data.code === 0) {
                     alert('文件识别成功');
-                    setCond2(true)
+                    const nerButton = document.getElementById('nerButton');
+                    nerButton?.classList.add('is-hidden');
+                    const resultDiv = document.getElementById('resultDiv');
+                    resultDiv?.classList.remove('is-hidden');
+                    setFileUuid(fileUuid);
                 }
                 else {
                     alert(data.err_msg)
@@ -115,81 +130,101 @@ export default function Work() {
     }
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-between ">
-
-            <div className="containers" style={{ width: "80%", height: "100vh" }}>
-
-                {Nav()}
-
-                <div className="box" style={{ width: "100%", height: "100vh" }}>
-                    <div style={{ width: "75%", height: "50vh", float: "right" }}>
-
-                        <div className="box">
-
-                            <p>请选择文件，文件格式包括：pdf，doc，txt，jpg，png</p>
-                            <form encType="multipart/form-data" method="post" onSubmit={handleSubmit}>
-                                <div className="file has-name is-fullwidth">
-                                    <label className="file-label">
-                                        <input className="file-input" type="file" name="resume" value={fileName} onChange={(e) => {
-                                            setFileName(e.target.value)
-                                            if (e.target.files && e.target.files[0]) {
-                                                setFile(e.target.files[0]);
-                                            } else {
-                                                setFile(null)
-                                            }
-                                        }} />
-                                        <span className="file-cta">
-                                            <span className="file-icon">
-                                                <i className="fas fa-upload"></i>
-                                            </span>
-                                            <span className="file-label"> 选择文件… </span>
-                                        </span>
-                                        <span className="file-name"> {fileName} </span>
-                                    </label>
-                                </div>
-                                <button className="submit formButton" style={{ width: "40%" }}>提 交</button>
-                                <button className="button" style={{ width: "40%", height: "5.6vh", marginLeft: "10%" }} onClick={handleCancel}>取 消</button>
-                            </form>
-
+        <div style={{ display: "flex", minHeight: "100vh" }}>
+            {Nav()}
+            <main className="rightDiv">
+                <div>
+                    <nav className="breadcrumb has-succeeds-separator" aria-label="breadcrumbs">
+                        <ul>
+                            <li>
+                                <span className="panel-icon is-small is-left">
+                                    <i className="fas fa-angle-double-right" />
+                                </span>
+                                <Link href="/home">
+                                    <p style={{ color: "black" }}>个人主页</p>
+                                </Link>
+                            </li>
+                            <li className="is-active"><a href="#" aria-current="page">
+                                <p style={{ color: "black" }}>
+                                    <strong>工作页面</strong>
+                                </p>
+                            </a></li>
+                        </ul>
+                    </nav>
+                </div>
+                <hr />
+                <div style={{ width: "80%", margin: "auto", borderLeft: "3px solid", borderLeftColor: "rgb(243 244 246)" }}>
+                    <div style={{ width: "60%", marginLeft: "10px" }}>
+                        <div className="content">
+                            <p>
+                                在这里，您可以上传文件到您的文件夹中，并且可以选择继续识别。
+                            </p>
+                            <p>
+                                在识别成功后，您可以选择查看结果，这样做您将跳转到展示页面。
+                            </p>
+                            <p>
+                                如果您上传文件后没有选择识别文件，那么您可以在您的文件夹中找到未识别的法律文书，选择识别图标即可进行识别。
+                            </p>
                         </div>
 
-                        {
-                            cond1 ?
-                                <div className="box">
-                                    <p>文件上传成功</p>
-                                    <br />
-                                    <button className="button formButton" style={{ width: "40%" }} onClick={handleCancel2}>识别文件</button>
-                                </div>
-                                :
-                                <></>
-                        }
+                        <form id="uploadForm" encType="multipart/form-data" method="post" onSubmit={handleSubmit}>
+                            <label className="label">请选择文件，文件格式包括：pdf，txt，jpg，jpeg，png</label>
+                            <div className="file has-name is-fullwidth">
+                                <label className="file-label">
+                                    <input className="file-input" type="file" name="resume" value={fileName} onChange={(e) => {
+                                        setFileName(e.target.value)
+                                        if (e.target.files && e.target.files[0]) {
+                                            setFile(e.target.files[0]);
+                                        } else {
+                                            setFile(null)
+                                        }
+                                    }} />
+                                    <span className="file-cta">
+                                        <span className="file-icon">
+                                            <i className="fas fa-upload"></i>
+                                        </span>
+                                        <span className="file-label"> 选择文件… </span>
+                                    </span>
+                                    <span className="file-name"> {fileName} </span>
+                                </label>
+                            </div>
+                            <div id="fileUploadButton">
+                                <button className="submit button is-info" style={{ width: "40%" }}>提 交</button>
+                                <button className="button" style={{ width: "40%", height: "5.6vh", marginLeft: "10%" }} onClick={handleCancel}>取 消</button>
+                            </div>
+                        </form>
 
-                        {
-                            cond3 ?
-                                <div>
-                                    <p>正在识别中...</p>
-                                    <progress className="progress is-primary" max="100">
-                                        30%
-                                    </progress>
-                                </div>
-                                :
-                                <></>
-                        }
+                        <div id="nerDiv" className="is-hidden">
+                            <label className="label">文件上传成功</label>
+                            <div id="nerButton">
+                                <button className="button button is-info" style={{ width: "40%" }} onClick={handleSubmit2}>识别文件</button>
+                            </div>
+                        </div>
 
-                        {
-                            cond2 ?
-                                <div className="box">
-                                    <p>文件识别成功</p>
-                                    <br />
-                                    <button className="button formButton" style={{ width: "40%" }}>查看结果</button>
-                                </div>
-                                :
-                                <></>
-                        }
+                        <div id="nerDiv2" className="is-hidden">
+                            <label className="label">您选择了文件夹中的文件：{fileName2}</label>
+                            <div>
+                                <button className="button button is-info" style={{ width: "40%" }} onClick={handleSubmit2}>识别文件</button>
+                            </div>
+                        </div>
 
+                        <div id="progressDiv" className="is-hidden">
+                            <label className="label">正在识别中...</label>
+                            <progress className="progress is-primary" max="100">
+                                20%
+                            </progress>
+                        </div>
+
+                        <div id="resultDiv" className="is-hidden">
+                            <label className="label">文件识别成功</label>
+                            <Link href={`/show?uuid=${fileUuid}`}>
+                                <button className="button button is-info" style={{ width: "40%" }}>查看结果</button>
+                            </Link>
+                        </div>
                     </div>
+
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     );
 };
