@@ -87,24 +87,53 @@ export default function File() {
         router.replace('/user/login');
     }
 
+    async function fetchDataAndSetState() {
+        const fetchedData = await getUserList(keyword, keyword2, 1);
+        setData(fetchedData);
+        setCurrentPage(1);
+        setTotalPage(Math.ceil(fetchedData.count / 10));
+    };
     useEffect(() => {
-        async function fetchDataAndSetState() {
-            const fetchedData = await getUserList(keyword, keyword2, 1);
-            setData(fetchedData);
-            setCurrentPage(1);
-            setTotalPage(Math.ceil(fetchedData.count / 10));
-        };
-
         fetchDataAndSetState();
     }, [keyword, keyword2]);
     useEffect(() => {
-        async function fetchDataAndSetState() {
+        async function fetchDataAndSetState2() {
             const fetchedData = await getUserList(keyword, keyword2, currentPage);
             setData(fetchedData);
         };
 
-        fetchDataAndSetState();
+        fetchDataAndSetState2();
     }, [currentPage]);
+
+    async function signout(e: React.MouseEvent<HTMLButtonElement>, phone: string) {
+        const token = getAdmin()
+        const url = 'http://localhost:22222/lawdoc/admin/signout';
+        const config = {
+            headers: {
+                'Authorization': token
+            }
+        };
+
+        try {
+            const response = await axios.post(url, {
+                'phone': phone,
+            }, config);
+
+            if (response.status === 200) {
+                if (response.data.code === 0) {
+                    alert('删除成功');
+                    fetchDataAndSetState();
+                } else {
+                    alert(response.data.err_msg);
+                }
+            } else {
+                alert('删除失败');
+            }
+        } catch (error) {
+            console.error('删除失败：', error);
+            alert('删除失败');
+        }
+    }
 
     return (
         <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -162,6 +191,7 @@ export default function File() {
                                     </th>
                                     <th>手机号</th>
                                     <th>文件数量</th>
+                                    <th>操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -180,6 +210,9 @@ export default function File() {
                                             <td>{user.sex === 0 ? '男' : '女'}</td>
                                             <td>{user.phone}</td>
                                             <td>{user.file_count}</td>
+                                            <td>
+                                                <button onClick={(e) => signout(e, user.phone)}><strong>注销</strong></button>
+                                            </td>
                                         </tr>
                                     ))
                                 }

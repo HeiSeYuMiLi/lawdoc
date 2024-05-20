@@ -24,6 +24,7 @@ public:
   ADD_METHOD_TO(user_ctl::admin_get_all_user_list, "/lawdoc/admin/all_user_list", Post);
   ADD_METHOD_TO(user_ctl::upload_head_img, "/lawdoc/upload_head_img", Post);
   ADD_METHOD_TO(user_ctl::get_head_img, "/lawdoc/head_img", Post);
+  ADD_METHOD_TO(user_ctl::signout, "/lawdoc/admin/signout", Post);
 
   METHOD_LIST_END
 
@@ -39,5 +40,6 @@ public:
   Task<> admin_get_all_user_list(HttpRequestPtr req, FUNCTION callback);
   Task<> upload_head_img(HttpRequestPtr req, FUNCTION callback);
   Task<> get_head_img(HttpRequestPtr req, FUNCTION callback);
+  Task<> signout(HttpRequestPtr req, FUNCTION callback);
 };
 } // namespace lawdoc

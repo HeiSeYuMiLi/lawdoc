@@ -416,3 +416,27 @@ Task<> user_ctl::get_head_img(HttpRequestPtr req, FUNCTION callback) {
   auto resp = HttpResponse::newFileResponse(path);
   callback(resp);
 }
+
+Task<> user_ctl::signout(HttpRequestPtr req, FUNCTION callback) {
+  auto token = req->getHeader("Authorization");
+  if (!co_await t_user::check_uuid(token)) {
+    callback(utils::error("登录失效", 456));
+    co_return;
+  }
+
+  auto json_ptr = req->getJsonObject();
+  if (!json_ptr) {
+    callback(utils::error("参数缺失", 456));
+    co_return;
+  }
+  auto req_json{*json_ptr};
+
+  auto phone = req_json["phone"].asString();
+  criteria crit{};
+  crit.set_crit("phone", "=", phone);
+  if (co_await t_user::coro_delete(crit)) {
+    callback(drogon::HttpResponse::newHttpJsonResponse(utils::cb_json()));
+  } else {
+    callback(utils::error("系统错误，请联系管理员！", 456));
+  }
+}
