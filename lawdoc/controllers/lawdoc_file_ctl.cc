@@ -42,7 +42,7 @@ Task<> file_ctl::upload_file(HttpRequestPtr req, FUNCTION callback) {
   // 检查文件类型
   auto type = file.getFileExtension();
   if (type != "txt" && type != "pdf" && type != "docx" && type != "png" &&
-      type != "jpg") {
+      type != "jpg" && type != "jpeg") {
     callback(utils::error("文件类型错误！"sv, 403));
     co_return;
   }
@@ -106,7 +106,7 @@ Task<> file_ctl::get_file_list(HttpRequestPtr req, FUNCTION callback) {
     jsonv j{};
     j["fileName"] = file.getValueOfFileName();
     j["fileUuid"] = file.getValueOfFileUuid();
-    j["status"]=file.getValueOfStatus();
+    j["status"] = file.getValueOfStatus();
     json["data"]["files"].append(j);
   }
   callback(HttpResponse::newHttpJsonResponse(json));

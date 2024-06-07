@@ -120,6 +120,14 @@ function countFileByType(type: string, fileList: TFileList) {
     });
     return count;
 }
+function countFileByDate(date: string, fileList: TFileList) {
+    let count = 0;
+    fileList.forEach(json => {
+        if (json['create_time'].slice(0, 10) === date)
+            ++count;
+    });
+    return count;
+}
 
 function showChart(fileList: TFileList) {
     const counts = [
@@ -186,19 +194,25 @@ export default function Home() {
     const [count, setCount] = useState(0);
     const [headImgUrl, setHeadImgUrl] = useState('');
     const [file, setFile] = useState<File | null>(null);
+    const [todayFileCount, setTodayFileCount] = useState(0);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
     async function fetchDataAndSetState() {
         const fetchedData = await getUserInfo();
         const fetchedData2 = await getHeadImg();
         setData(fetchedData);
         setSex(fetchedData.sex === 0 ? '男' : '女');
         setHeadImgUrl(fetchedData2);
-
     }
     useEffect(() => {
         fetchDataAndSetState();
         async function handleShowChart() {
             const fetchedData = await getFileList();
             setCount(fetchedData.length);
+            setTodayFileCount(countFileByDate(formattedDate, fetchedData));
             showChart(fetchedData);
         }
         handleShowChart();
@@ -361,7 +375,7 @@ export default function Home() {
                                     您目前总共提交并识别了<strong>{count}</strong>个文件，
                                 </p>
                                 <p>
-                                    其中今日提交并识别了<strong>X</strong>个。
+                                    其中今日提交并识别了<strong>{todayFileCount}</strong>个。
                                 </p>
                             </div>
                         </div>

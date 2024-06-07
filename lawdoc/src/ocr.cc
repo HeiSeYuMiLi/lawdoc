@@ -6,12 +6,13 @@
 #include <drogon/drogon.h>
 #include <drogon/utils/Utilities.h>
 #include <filesystem>
-// #include <fstream>
+#include <fstream>
 #include <memory>
 #include <poppler-document.h>
 #include <poppler-image.h>
 #include <poppler-page-renderer.h>
 #include <poppler-page.h>
+#include <trantor/utils/Logger.h>
 
 namespace lawdoc::ocr {
 
@@ -61,6 +62,57 @@ std::vector<std::string> pdf2image(std::string_view file_name) {
     }
   }
   return img_names;
+}
+
+std::string text_extract_handler(std::string_view file_name) {
+  // 创建一个poppler::document对象
+  std::unique_ptr<poppler::document> doc(
+      poppler::document::load_from_file(FILE_PATH + std::string(file_name)));
+
+  // 检查文档是否成功加载
+  if (!doc.get()) {
+    utils::error("loading error");
+    return {};
+  }
+  // 检查文件是否上锁
+  if (doc->is_locked()) {
+    utils::error("encrypted document");
+    return {};
+  }
+
+  auto uuid = drogon::utils::getUuid();
+  std::ofstream out("../file/" + uuid + ".txt");
+  if (!out.is_open()) {
+    utils::error("file don't open");
+    return {};
+  }
+
+  // 遍历每一页，然后抽取文本
+  for (auto i{0}; i < doc->pages(); ++i) {
+    std::unique_ptr<poppler::page> p(doc->create_page(i));
+    if (!p.get()) {
+      utils::error("NULL page");
+      out.close();
+      return {};
+    }
+    auto text = p->text().to_utf8();
+    for (int j{}; j < text.size(); ++j) {
+      // 换页符不要
+      if (text[j] == 12)
+        continue;
+      // 汉字和数字之间的空格不要
+      if (text[j] == 32) {
+        if (j > 0 && text[j - 1] >= 48 && text[j - 1] <= 57)
+          continue;
+        if (j < text.size() - 1 && text[j + 1] >= 48 && text[j + 1] <= 57)
+          continue;
+      }
+      out << text[j];
+    }
+  }
+
+  out.close();
+  return uuid;
 }
 
 std::string parse_image(std::string_view img_name, std::string_view img_path) {

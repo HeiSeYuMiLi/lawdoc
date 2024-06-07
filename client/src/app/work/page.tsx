@@ -190,7 +190,7 @@ export default function Work() {
                             </div>
                             <div id="fileUploadButton">
                                 <button className="submit button is-info" style={{ width: "40%" }}>提 交</button>
-                                <button className="button" style={{ width: "40%", height: "5.6vh", marginLeft: "10%" }} onClick={handleCancel}>取 消</button>
+                                <button className="submit button" style={{ width: "40%", marginLeft: "10%" }} onClick={handleCancel}>取 消</button>
                             </div>
                         </form>
 

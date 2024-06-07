@@ -561,7 +561,8 @@ function showChart2(fileList: TFileList) {
                     { value: countFileByType('txt', fileList), name: 'txt' },
                     { value: countFileByType('pdf', fileList), name: 'pdf' },
                     { value: countFileByType('png', fileList), name: 'png' },
-                    { value: countFileByType('jpg', fileList), name: 'jpg' }
+                    { value: countFileByType('jpg', fileList), name: 'jpg' },
+                    { value: countFileByType('jpeg', fileList), name: 'jpeg' },
                 ]
             }
         ]

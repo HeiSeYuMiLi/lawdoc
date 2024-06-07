@@ -43,7 +43,7 @@ Task<std::string> handle_img(std::string const &file_uuid,
                              std::string const &token) {
   auto uuid = drogon::utils::getUuid();
   std::ofstream out("../file/" + uuid + ".txt");
-  out << ocr::parse_image(file_uuid + "." + file_type,"../file/");
+  out << ocr::parse_image(file_uuid + "." + file_type, "../file/");
   if (out.is_open()) {
     out.close();
   } else {
@@ -94,7 +94,7 @@ Task<> ner_ctl::ner(HttpRequestPtr req, FUNCTION callback) {
     uuid = co_await handle_pdf(file_uuid, file_type, token);
   } else if (file_type == "txt") {
     uuid = file_uuid;
-  } else if (file_type == "png" || file_type == "jpg") {
+  } else if (file_type == "png" || file_type == "jpg" || file_type == "jpeg") {
     uuid = co_await handle_img(file_uuid, file_type, token);
   }
   if (uuid.empty()) {

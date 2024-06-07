@@ -232,6 +232,8 @@ export default function Show() {
         const myModal = document.getElementById('myModal');
         setEntity(item);
         setIndex(Number(key));
+        setBegin(item.begin.toLocaleString());
+        setEnd(item.end.toLocaleString());
         myModal?.classList.add('is-active');
     }
     function HandleClickDelete(event: React.MouseEvent<HTMLButtonElement>) {
@@ -291,6 +293,10 @@ export default function Show() {
             console.error('系统错误，请联系管理员：', error);
             alert('系统错误，请联系管理员');
         }
+        const beginPos = document.getElementById('beginPos') as HTMLInputElement;
+        const endPos = document.getElementById('endPos') as HTMLInputElement;
+        beginPos.value = '';
+        endPos.value = '';
     }
     async function HandleClickSubmit2(event: React.MouseEvent<HTMLButtonElement>) {
         event.preventDefault();
@@ -413,11 +419,11 @@ export default function Show() {
                             <div style={{ clear: "both" }}></div>
                             <label className="label" style={{ width: "40%", float: "left", marginRight: "10%" }}>
                                 起始位置：
-                                <input className="input" type="text" placeholder={entity.begin.toLocaleString()} onChange={(e) => setBegin(e.target.value)} />
+                                <input id="beginPos" className="input" type="text" placeholder={entity.begin.toLocaleString()} onChange={(e) => setBegin(e.target.value)} />
                             </label>
                             <label className="label" style={{ width: "40%", float: "left" }}>
                                 结束位置：
-                                <input className="input" type="text" placeholder={entity.end.toLocaleString()} onChange={(e) => setEnd(e.target.value)} />
+                                <input id="endPos" className="input" type="text" placeholder={entity.end.toLocaleString()} onChange={(e) => setEnd(e.target.value)} />
                             </label>
                             <div style={{ clear: "both" }}></div>
                             <button className="button is-info" style={{ width: "40%", marginRight: "10%" }} onClick={HandleClickSubmit}>提交修改</button>

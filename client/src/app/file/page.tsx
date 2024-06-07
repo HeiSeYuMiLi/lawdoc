@@ -169,6 +169,7 @@ export default function File() {
                 const data = response.data;
                 if (data.code === 0) {
                     alert('删除成功');
+                    fetchDataAndSetState();
                 } else {
                     alert(data.err_msg);
                 }
